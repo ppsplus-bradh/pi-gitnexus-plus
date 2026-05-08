@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.6.3
+
+- **MCP idle shutdown** — `gitnexus mcp` now stops after 10 minutes of inactivity (configurable via `/gitnexus settings → MCP idle timeout`; `'off'` keeps it alive for the session, matching prior behavior). Releases the Python process and graph memory during long quiet stretches; the next MCP-routed call respawns at the cold-start cost (~1–3s). Auto-augment is unaffected — it uses a separate one-shot `gitnexus augment` subprocess.
+- **MCP startup-race fix** — `stop()` mid-handshake previously orphaned the spawning child because `this.proc` wasn't set yet. Now tracks the in-flight process in `startingProc` and kills it on stop. New regression test covers this path.
+- **Session shutdown cleanup** — added `pi.on('session_shutdown', () => mcpClient.stop())` so the MCP child doesn't outlive pi's own exit (was already best-effort via OS reaping; now explicit).
+- **`/gitnexus analyze` lifecycle** — stops MCP before reindexing so it cannot serve queries against a half-rebuilt graph, and again after completion so the next tool call respawns against the fresh index. Also clears the auto-augment session caches (`augmentedCache`, `emptyCache`) on success, so previously-augmented files re-augment with the new graph.
+- **Analyze auto-fallback to `--skip-git`** — if `gitnexus analyze` fails with "not a git repository", the extension retries once with `--skip-git`.
+- **Custom GitNexus command in settings** — the `cmd` row now opens a text input on Enter (instead of cycling a fixed list), so users can enter any path or invocation. Examples remain in the description.
+- **Settings apply live** — every change in `/gitnexus settings` (auto-augment, augment timeout, MCP idle timeout, cmd, etc.) takes effect immediately rather than only on menu close. Live re-arming for `mcpIdleTimeout` so toggling on/off or changing the value resets the active timer right away.
+
 ## 0.6.2
 
 **Breaking — peer dependency scope change.** The `@mariozechner/*` packages were deprecated in favor of `@earendil-works/*`. Consumers must have `@earendil-works/pi-ai`, `@earendil-works/pi-coding-agent`, and `@earendil-works/pi-tui` ≥ 0.74 installed.

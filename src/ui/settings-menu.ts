@@ -6,7 +6,7 @@
  */
 
 import { getSettingsListTheme } from "@earendil-works/pi-coding-agent";
-import { Container, type SettingItem, SettingsList, Spacer, Text } from "@earendil-works/pi-tui";
+import { Container, Input, type SettingItem, SettingsList, Spacer, Text } from "@earendil-works/pi-tui";
 import { type GitNexusConfig, saveConfig } from "../gitnexus.js";
 
 // ── Types ───────────────────────────────────────────────────────────────────
@@ -24,7 +24,7 @@ export async function openSettingsMenu(
   ui: SettingsUI,
   cfg: GitNexusConfig,
   state: { augmentEnabled: boolean },
-  onBack: () => Promise<void>,
+  applyChanges: () => void,
 ): Promise<void> {
   await ui.custom((_tui, theme, _kb, done) => {
     const items: SettingItem[] = [
@@ -68,14 +68,38 @@ export async function openSettingsMenu(
         values: ["0", "1", "2", "3", "5"],
       },
       {
+        id: "mcpIdleTimeout",
+        label: "MCP idle timeout",
+        description:
+          "Stop the gitnexus MCP server after this many seconds of inactivity. " +
+          "Lower values release RAM sooner but pay restart latency more often. " +
+          "'off' = never stop (kept alive for the session). Default: 600 (10 min).",
+        currentValue: cfg.mcpIdleTimeout === 0 ? "off" : String(cfg.mcpIdleTimeout ?? 600),
+        values: ["off", "60", "300", "600", "1800", "3600"],
+      },
+      {
         id: "cmd",
         label: "GitNexus command",
         description:
-          "The shell command used to invoke gitnexus. " +
-          "Change if gitnexus is installed in a non-standard location or you want " +
-          "to use npx. Default: gitnexus.",
+          "The shell command used to invoke gitnexus. Press Enter to edit. " +
+          "Examples: 'gitnexus', 'npx gitnexus@latest', or a custom path. " +
+          "Default: gitnexus.",
         currentValue: cfg.cmd ?? "gitnexus",
-        values: ["gitnexus", "npx gitnexus@latest", "npx -y gitnexus@latest"],
+        submenu: (currentValue, finish) => {
+          const input = new Input();
+          input.setValue(currentValue);
+          input.focused = true; // SettingsList delegates input directly; bypass TUI focus mgmt
+          input.onSubmit = (value) => finish(value.trim() || undefined);
+          input.onEscape = () => finish(undefined);
+          return {
+            render: (w) => [
+              theme.fg("dim", "Edit gitnexus command (Enter=save, Esc=cancel):"),
+              ...input.render(w),
+            ],
+            handleInput: (data) => input.handleInput(data),
+            invalidate: () => input.invalidate(),
+          };
+        },
       },
     ];
 
@@ -87,24 +111,24 @@ export async function openSettingsMenu(
         if (id === "autoAugment") {
           state.augmentEnabled = newValue === "on";
           cfg.autoAugment = newValue === "on";
-          saveConfig(cfg);
         }
         if (id === "augmentTimeout") {
           cfg.augmentTimeout = parseInt(newValue, 10);
-          saveConfig(cfg);
         }
         if (id === "maxAugmentsPerResult") {
           cfg.maxAugmentsPerResult = parseInt(newValue, 10);
-          saveConfig(cfg);
         }
         if (id === "maxSecondaryPatterns") {
           cfg.maxSecondaryPatterns = parseInt(newValue, 10);
-          saveConfig(cfg);
+        }
+        if (id === "mcpIdleTimeout") {
+          cfg.mcpIdleTimeout = newValue === "off" ? 0 : parseInt(newValue, 10);
         }
         if (id === "cmd") {
           cfg.cmd = newValue;
-          saveConfig(cfg);
         }
+        saveConfig(cfg);
+        applyChanges();
       },
       /* onCancel */ () => done(undefined),
     );
@@ -121,5 +145,4 @@ export async function openSettingsMenu(
     };
   });
 
-  return onBack();
 }

@@ -1,8 +1,8 @@
 import { delimiter } from 'node:path';
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import spawn from 'cross-spawn';
-import { clearIndexCache, extractFilePatternsFromContent, extractFilesFromReadMany, extractPattern, findGitNexusIndex, findGitNexusRoot, type GitNexusConfig, gitnexusCmd, loadSavedConfig, resolveGitNexusCmd, runAugment, setAugmentTimeout, setGitnexusCmd, spawnEnv, updateSpawnEnv } from './gitnexus';
-import { mcpClient } from './mcp-client';
+import { clearIndexCache, extractFilePatternsFromContent, extractFilesFromReadMany, extractPattern, findGitNexusIndex, findGitNexusRoot, type GitNexusConfig, gitnexusCmd, loadSavedConfig, resolveGitNexusCmd, runAugment, runGitNexusAnalyze, setAugmentTimeout, setGitnexusCmd, spawnEnv, updateSpawnEnv } from './gitnexus';
+import { mcpClient, setMcpIdleTimeout } from './mcp-client';
 import { registerTools } from './tools';
 import { openMainMenu } from './ui/main-menu';
 
@@ -122,6 +122,11 @@ const augmentedCache = new Set<string>();
  */
 const emptyCache = new Set<string>();
 
+function resetAugmentCaches(): void {
+  augmentedCache.clear();
+  emptyCache.clear();
+}
+
 export default function(pi: ExtensionAPI) {
   registerTools(pi);
 
@@ -235,8 +240,7 @@ export default function(pi: ExtensionAPI) {
     clearIndexCache();
     augmentHits = 0;
     hookFires = 0;
-    augmentedCache.clear();
-    emptyCache.clear();
+    resetAugmentCaches();
     sessionCwd = ctx.cwd;
     await resolveShellPath();
 
@@ -244,6 +248,7 @@ export default function(pi: ExtensionAPI) {
     cfg = loadSavedConfig();
     augmentEnabled = cfg.autoAugment !== false;
     if (cfg.augmentTimeout) setAugmentTimeout(cfg.augmentTimeout);
+    if (cfg.mcpIdleTimeout != null) setMcpIdleTimeout(cfg.mcpIdleTimeout);
 
     // Resolve command: default → saved config → CLI flag (highest precedence)
     const flag = pi.getFlag('gitnexus-cmd') as string | undefined;
@@ -269,6 +274,10 @@ export default function(pi: ExtensionAPI) {
     void onSession(ctx).catch(err => {
       ctx.ui.notify(`GitNexus session init failed: ${err.message}`, 'error');
     });
+  });
+
+  pi.on('session_shutdown', () => {
+    mcpClient.stop();
   });
 
   const subcommands = ['status', 'analyze', 'on', 'off', 'settings', 'query', 'context', 'impact', 'help'];
@@ -361,12 +370,14 @@ export default function(pi: ExtensionAPI) {
           getAugmentHits: () => augmentHits,
           findGitNexusIndex,
           clearIndexCache,
+          resetAugmentCaches,
           setGitnexusCmd,
           setAugmentTimeout,
           syncState: () => {
             augmentEnabled = state.augmentEnabled;
             if (cfg.cmd) setGitnexusCmd(cfg.cmd.trim().split(/\s+/));
             if (cfg.augmentTimeout) setAugmentTimeout(cfg.augmentTimeout);
+            if (cfg.mcpIdleTimeout != null) setMcpIdleTimeout(cfg.mcpIdleTimeout);
           },
         });
         return;
@@ -380,18 +391,10 @@ export default function(pi: ExtensionAPI) {
         }
         augmentEnabled = false;
         ctx.ui.notify('GitNexus: analyzing codebase, this may take a while…', 'info');
-        const exitCode = await new Promise<number | null>((resolve_) => {
-          const [bin, ...baseArgs] = gitnexusCmd;
-          const proc = spawn(bin, [...baseArgs, 'analyze'], {
-            cwd: ctx.cwd,
-            stdio: 'ignore',
-            env: spawnEnv,
-          });
-          proc.on('close', resolve_);
-          proc.on('error', () => resolve_(null));
-        });
+        const exitCode = await runGitNexusAnalyze(ctx.cwd);
         if (exitCode === 0) {
           clearIndexCache();
+          resetAugmentCaches();
           augmentEnabled = true;
           ctx.ui.notify('GitNexus: analysis complete. Knowledge graph ready.', 'info');
         } else {
