@@ -61,12 +61,15 @@ description: "Use when the user wants to rename, extract, split, move, or restru
 
 ## Risk Rules
 
-| Risk Factor         | Mitigation                                |
-| ------------------- | ----------------------------------------- |
-| Many callers (>5)   | Use gitnexus_rename for automated updates |
-| Cross-area refs     | Use detect_changes after to verify scope  |
-| String/dynamic refs | gitnexus_query to find them               |
-| External/public API | Version and deprecate properly            |
+| Risk Factor         | Mitigation                                         |
+| ------------------- | -------------------------------------------------- |
+| Many callers (>5)   | Use gitnexus_rename for automated updates          |
+| Cross-area refs     | Use detect_changes after to verify scope           |
+| String/dynamic refs | gitnexus_query to find them                        |
+| External/public API | Version and deprecate properly                     |
+| API route changes   | gitnexus_api_impact to check consumers first       |
+| Response shape      | gitnexus_shape_check to verify consumer compat     |
+| Cross-repo impact   | gitnexus_group_list + group_sync for contract check |
 
 ## Example: Rename `validateUser` to `authenticateUser`
 

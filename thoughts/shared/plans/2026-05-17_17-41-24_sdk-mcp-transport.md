@@ -48,6 +48,7 @@ Replace the handrolled `GitNexusMcpClient` with an SDK-based wrapper. Install th
 ### Changes Required:
 
 #### 1. Package Dependencies
+
 **File**: `package.json`
 **Changes**: Add `@modelcontextprotocol/sdk` as a dependency. Add `zod` as a peer dependency. Keep `cross-spawn` (still needed for `runAugment()` and `runGitNexusAnalyze()` CLI subprocess spawning).
 
@@ -66,6 +67,7 @@ Replace the handrolled `GitNexusMcpClient` with an SDK-based wrapper. Install th
 ```
 
 #### 2. MCP Client Rewrite
+
 **File**: `src/mcp-client.ts`
 **Changes**: Complete rewrite. Delete the handrolled `GitNexusMcpClient` class (buffer management, pending map, JSON-RPC framing, manual handshake, spawn logic). Replace with a thin wrapper around SDK `Client` that:
 
@@ -85,8 +87,10 @@ Replace the handrolled `GitNexusMcpClient` with an SDK-based wrapper. Install th
 The key external API stays the same: `callTool(name, args, cwd): Promise<string>` and `stop()`. Callers don't need to change.
 
 #### 3. MCP Client Tests
+
 **File**: `tests/mcp-client.test.ts`
 **Changes**: Rewrite all 3 tests to mock the SDK instead of `cross-spawn`. The existing tests verify:
+
 1. Error when tool response has `isError: true` → still needed, mock `Client.callTool()` return
 2. Idle timeout kills process → still needed, verify `transport.close()` called after timeout
 3. `stop()` mid-handshake rejects pending → still needed, verify `transport.close()` during `connect()`
@@ -96,6 +100,7 @@ New mocking strategy: mock `@modelcontextprotocol/sdk/client/index.js` and `@mod
 ### Success Criteria:
 
 #### Automated Verification:
+
 - [ ] `npm install` succeeds with the new dependency
 - [ ] Type checking passes: `npm run typecheck`
 - [ ] Linting passes: `npm run lint`
@@ -103,6 +108,7 @@ New mocking strategy: mock `@modelcontextprotocol/sdk/client/index.js` and `@mod
 - [ ] `mcpClient.callTool('query', { query: 'test' }, '/tmp')` interface is unchanged
 
 #### Manual Verification:
+
 - [ ] Stdio mode works: with `gitnexus` on PATH, `/gitnexus query <pattern>` returns results
 - [ ] All 7 existing tools respond correctly
 
@@ -119,10 +125,12 @@ Add HTTP transport configuration fields, create the `GitNexusServerApi` REST cli
 ### Changes Required:
 
 #### 1. Configuration Interface & Augment Routing
+
 **File**: `src/gitnexus.ts`
 **Changes**:
 
 - Extend `GitNexusConfig` interface with 4 new optional fields:
+
   ```typescript
   mcpTransport?: 'stdio' | 'http';
   mcpServerUrl?: string;
@@ -141,6 +149,7 @@ Add HTTP transport configuration fields, create the `GitNexusServerApi` REST cli
 - Import `mcpClient` for transport type checks. Note: this creates a circular dependency risk since `mcp-client.ts` imports from `gitnexus.ts`. Resolve by having `runAugment()` and `runGitNexusAnalyze()` accept a `transportType` parameter instead of importing `mcpClient` directly, or by extracting the transport type into a shared module.
 
 #### 2. Server REST API Client
+
 **File**: `src/server-api.ts` (NEW)
 **Changes**: Create the `GitNexusServerApi` class with:
 
@@ -157,8 +166,10 @@ All types exported: `ServerInfo`, `RepoInfo`, `AnalyzeJob`, `AnalyzeJobStatus`.
 Uses built-in `fetch()` (Node 20+). No new dependencies.
 
 #### 3. Config Tests
+
 **File**: `tests/config.test.ts`
 **Changes**: Add tests for new config fields:
+
 - New fields are optional and default correctly
 - `loadSavedConfig()` returns new fields when present in JSON
 - `mcpTransport` validates as `'stdio' | 'http'`
@@ -166,12 +177,14 @@ Uses built-in `fetch()` (Node 20+). No new dependencies.
 ### Success Criteria:
 
 #### Automated Verification:
+
 - [ ] Type checking passes: `npm run typecheck`
 - [ ] Linting passes: `npm run lint`
 - [ ] All tests pass: `npm test`
 - [ ] `GitNexusServerApi.fromMcpUrl('http://localhost:4747/api/mcp')` constructs correctly
 
 #### Manual Verification:
+
 - [ ] `new GitNexusServerApi('http://localhost:4747').health()` returns `true` against running server
 - [ ] `new GitNexusServerApi('http://localhost:4747').listRepos()` returns repo list
 - [ ] `new GitNexusServerApi('http://localhost:4747').analyze({ path: '/workspace/test' })` returns jobId
@@ -189,6 +202,7 @@ Register all 13 MCP tools (6 new) and the `gitnexus_read_resource` meta-tool. Up
 ### Changes Required:
 
 #### 1. Tool Registration + Guard Updates
+
 **File**: `src/tools.ts`
 **Changes**:
 
@@ -212,6 +226,7 @@ Register all 13 MCP tools (6 new) and the `gitnexus_read_resource` meta-tool. Up
 - All new tools follow the existing pattern: `buildRepoArgs()` for repo resolution, `mcpClient.callTool()` for execution, `text()` wrapper for return
 
 #### 2. Tool Tests
+
 **File**: `tests/tools.test.ts`
 **Changes**:
 
@@ -228,12 +243,14 @@ Mock `mcpClient.transportType` as a getter: use `Object.defineProperty` or a mut
 ### Success Criteria:
 
 #### Automated Verification:
+
 - [ ] Type checking passes: `npm run typecheck`
 - [ ] Linting passes: `npm run lint`
 - [ ] All tests pass: `npm test`
 - [ ] `pi.tools.map(t => t.name)` includes all 14 tool names
 
 #### Manual Verification:
+
 - [ ] In HTTP mode, `gitnexus_route_map` with no params returns results (or clear "no routes" message)
 - [ ] `gitnexus_read_resource` with `uri: 'gitnexus://repos'` returns repo list
 
@@ -248,6 +265,7 @@ Wire everything together: HTTP-mode session lifecycle, `/gitnexus` command branc
 ### Changes Required:
 
 #### 1. Extension Entry Point
+
 **File**: `src/index.ts`
 **Changes**:
 
@@ -255,11 +273,13 @@ Wire everything together: HTTP-mode session lifecycle, `/gitnexus` command branc
 - Add module-level `let serverApi: GitNexusServerApi | null = null`
 
 - Register new CLI flag:
+
   ```typescript
-  pi.registerFlag('gitnexus-server', {
-    type: 'string',
-    default: '',
-    description: 'GitNexus server URL for HTTP transport. Overrides saved config.',
+  pi.registerFlag("gitnexus-server", {
+    type: "string",
+    default: "",
+    description:
+      "GitNexus server URL for HTTP transport. Overrides saved config.",
   });
   ```
 
@@ -281,12 +301,13 @@ Wire everything together: HTTP-mode session lifecycle, `/gitnexus` command branc
   - Stdio mode: existing spawn behavior
 
 - Update `/gitnexus analyze` handler:
-  - HTTP mode: determine target from args (`url` if starts with `http`, else `workspaceDir/name`, else derive from `cwd` basename). Call `serverApi.analyzeAndWait()` with progress notifications. On completion, `await mcpClient.stop()` + clear caches. 
+  - HTTP mode: determine target from args (`url` if starts with `http`, else `workspaceDir/name`, else derive from `cwd` basename). Call `serverApi.analyzeAndWait()` with progress notifications. On completion, `await mcpClient.stop()` + clear caches.
   - Stdio mode: existing `runGitNexusAnalyze()` behavior
 
 - Update `/gitnexus help` to mention new tools and HTTP mode
 
 #### 2. Main Menu
+
 **File**: `src/ui/main-menu.ts`
 **Changes**:
 
@@ -295,6 +316,7 @@ Wire everything together: HTTP-mode session lifecycle, `/gitnexus` command branc
 - Update `runAnalyze()`: in HTTP mode, use `serverApi.analyzeAndWait()` instead of `runGitNexusAnalyze()`
 
 #### 3. Settings Menu
+
 **File**: `src/ui/settings-menu.ts`
 **Changes**:
 
@@ -310,11 +332,13 @@ Update the `onChange` handler to persist new fields to config and call `applyCha
 ### Success Criteria:
 
 #### Automated Verification:
+
 - [ ] Type checking passes: `npm run typecheck`
 - [ ] Linting passes: `npm run lint`
 - [ ] All tests pass: `npm test`
 
 #### Manual Verification:
+
 - [ ] Start pi with `--gitnexus-server http://localhost:4747/api/mcp` — see "connected to server" notification
 - [ ] `/gitnexus status` shows server version, transport, and repo list in HTTP mode
 - [ ] `/gitnexus analyze <repo-name>` triggers server-side analysis and reports progress
@@ -334,6 +358,7 @@ Add test coverage for HTTP-mode behavior in the integration test files, and veri
 ### Changes Required:
 
 #### 1. Command Handler Tests
+
 **File**: `tests/index-command.test.ts`
 **Changes**:
 
@@ -344,6 +369,7 @@ Add test coverage for HTTP-mode behavior in the integration test files, and veri
 Mock strategy: mock `../src/server-api` module alongside existing mocks.
 
 #### 2. Augment Hook Tests
+
 **File**: `tests/augment-hook.test.ts`
 **Changes**:
 
@@ -355,12 +381,14 @@ Mock strategy: configure `mcpClient` mock with `transportType: 'http'` getter an
 ### Success Criteria:
 
 #### Automated Verification:
+
 - [ ] Type checking passes: `npm run typecheck`
 - [ ] Linting passes: `npm run lint`
 - [ ] All tests pass: `npm test`
 - [ ] `npm run check` passes (typecheck + test combined)
 
 #### Manual Verification:
+
 - [ ] Full stdio workflow: install extension, run `/gitnexus analyze`, run search, see augmented results
 - [ ] Full HTTP workflow: configure server URL, run `/gitnexus status`, run `/gitnexus analyze`, use tools
 - [ ] Switching between stdio and HTTP mode works across sessions
@@ -370,11 +398,13 @@ Mock strategy: configure `mcpClient` mock with `transportType: 'http'` getter an
 ## Testing Strategy
 
 ### Automated:
+
 - `npm run typecheck` — TypeScript compilation with strict mode
 - `npm run lint` — Biome linting on `src/`
 - `npm test` — Vitest test suite
 
 ### Manual Testing Steps:
+
 1. Install extension in pi, verify no regressions in stdio mode
 2. Start GitNexus Docker container at `http://localhost:4747`
 3. Configure `--gitnexus-server http://localhost:4747/api/mcp`

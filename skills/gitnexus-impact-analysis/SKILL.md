@@ -19,7 +19,8 @@ description: "Use when the user wants to know what will break if they change som
 ```
 1. gitnexus_impact({target: "X", direction: "upstream"})  → What depends on this
 2. gitnexus_detect_changes()                               → Map current git changes to affected flows
-3. Assess risk and report to user
+3. gitnexus_api_impact({route: "/api/X"})                  → API-specific impact (if route handler)
+4. Assess risk and report to user
 ```
 
 > If index is stale → run `/gitnexus analyze` to rebuild.
@@ -47,6 +48,8 @@ description: "Use when the user wants to know what will break if they change som
 - [ ] gitnexus_impact({target, direction: "upstream"}) to find dependents
 - [ ] Review d=1 items first (these WILL BREAK)
 - [ ] Check high-confidence (>0.8) dependencies
+- [ ] gitnexus_api_impact if the target is a route handler
+- [ ] gitnexus_shape_check if changing an API response shape
 - [ ] gitnexus_detect_changes() for pre-commit check
 - [ ] Assess risk level and report to user
 ```
@@ -79,6 +82,27 @@ gitnexus_detect_changes({scope: "staged"})
 → Changed: 5 symbols in 3 files
 → Affected: LoginFlow, TokenRefresh, APIMiddlewarePipeline
 → Risk: MEDIUM
+```
+
+**gitnexus_api_impact** — API-specific pre-change analysis:
+
+```
+gitnexus_api_impact({route: "/api/users"})
+
+→ Consumers: UserList, UserProfile, AdminDashboard
+→ Response keys: data, pagination, total
+→ Middleware: withAuth, withRateLimit
+→ Risk: HIGH (9 consumers, 2 mismatches)
+```
+
+**gitnexus_shape_check** — response shape drift detection:
+
+```
+gitnexus_shape_check({route: "/api/users"})
+
+→ Route returns: { data, pagination, error }
+→ UserList accesses: data, pagination → OK
+→ AdminDashboard accesses: data, meta → MISMATCH (meta not in response)
 ```
 
 ## Example: "What breaks if I change validateUser?"
