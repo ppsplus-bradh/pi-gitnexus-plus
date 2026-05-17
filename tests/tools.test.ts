@@ -1,10 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const callToolMock = vi.fn(async () => '[GitNexus]\nok');
+const readResourceMock = vi.fn(async () => 'resource content');
+let transportTypeMock: 'stdio' | 'http' = 'stdio';
 
 vi.mock('../src/mcp-client', () => ({
   mcpClient: {
     callTool: callToolMock,
+    readResource: readResourceMock,
+    get transportType() { return transportTypeMock; },
   },
 }));
 
@@ -43,6 +47,8 @@ function createPiMock(): { tools: RegisteredTool[]; registerTool: (tool: Registe
 describe('registerTools', () => {
   beforeEach(() => {
     callToolMock.mockClear();
+    readResourceMock.mockClear();
+    transportTypeMock = 'stdio';
     findGitNexusIndexMock.mockClear();
     findGitNexusRootMock.mockClear();
     expandUserPathMock.mockClear();
@@ -71,6 +77,13 @@ describe('registerTools', () => {
       'gitnexus_detect_changes',
       'gitnexus_rename',
       'gitnexus_cypher',
+      'gitnexus_route_map',
+      'gitnexus_tool_map',
+      'gitnexus_shape_check',
+      'gitnexus_api_impact',
+      'gitnexus_group_list',
+      'gitnexus_group_sync',
+      'gitnexus_read_resource',
     ]);
   });
 
@@ -261,5 +274,58 @@ describe('registerTools', () => {
       },
       '/repo-root/app',
     );
+  });
+
+  it('shouldAllowQuery returns true in HTTP mode even without local index', async () => {
+    findGitNexusIndexMock.mockReturnValue(false);
+    transportTypeMock = 'http';
+    const { registerTools } = await import('../src/tools');
+    const pi = createPiMock();
+    registerTools(pi as any);
+
+    const queryTool = pi.tools.find((tool) => tool.name === 'gitnexus_query');
+    await queryTool!.execute('id', { query: 'test' }, undefined, undefined, { cwd: '/some/dir' });
+
+    expect(callToolMock).toHaveBeenCalledWith('query', { query: 'test' }, '/some/dir');
+  });
+
+  it('buildRepoArgs skips local root resolution in HTTP mode', async () => {
+    transportTypeMock = 'http';
+    const { registerTools } = await import('../src/tools');
+    const pi = createPiMock();
+    registerTools(pi as any);
+
+    const queryTool = pi.tools.find((tool) => tool.name === 'gitnexus_query');
+    await queryTool!.execute('id', { query: 'test' }, undefined, undefined, { cwd: '/some/dir' });
+
+    expect(findGitNexusRootMock).not.toHaveBeenCalled();
+    expect(callToolMock).toHaveBeenCalledWith('query', { query: 'test' }, '/some/dir');
+  });
+
+  it('gitnexus_read_resource calls readResource with correct URI', async () => {
+    const { registerTools } = await import('../src/tools');
+    const pi = createPiMock();
+    registerTools(pi as any);
+
+    const resourceTool = pi.tools.find((tool) => tool.name === 'gitnexus_read_resource');
+    expect(resourceTool).toBeDefined();
+
+    const result = await resourceTool!.execute('id', { uri: 'gitnexus://repos' }, undefined, undefined, { cwd: '/some/dir' });
+
+    expect(readResourceMock).toHaveBeenCalledWith('gitnexus://repos', '/some/dir');
+    expect(result.content[0].text).toBe('resource content');
+  });
+
+  it('gitnexus_group_sync passes name parameter correctly', async () => {
+    const { registerTools } = await import('../src/tools');
+    const pi = createPiMock();
+    registerTools(pi as any);
+
+    const syncTool = pi.tools.find((tool) => tool.name === 'gitnexus_group_sync');
+    expect(syncTool).toBeDefined();
+
+    await syncTool!.execute('id', { name: 'my-group' }, undefined, undefined, { cwd: '/some/dir' });
+
+    expect(callToolMock).toHaveBeenCalledWith('group_sync', { name: 'my-group' }, '/some/dir');
   });
 });

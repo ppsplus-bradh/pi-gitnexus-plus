@@ -2,6 +2,12 @@
   "success": true,
   "issues": [
     {
+      "type": "devDependency",
+      "name": "@biomejs/biome",
+      "file": "package.json",
+      "line": 46
+    },
+    {
       "type": "export",
       "name": "TransportConfig",
       "file": "src/mcp-client.ts",
@@ -29,7 +35,14 @@
     }
   ],
   "unusedFiles": [],
-  "unusedDeps": [],
+  "unusedDeps": [
+    {
+      "type": "devDependency",
+      "name": "@biomejs/biome",
+      "file": "package.json",
+      "line": 46
+    }
+  ],
   "unlistedDeps": [],
-  "summary": "Found 2 issues"
+  "summary": "Found 3 issues"
 }
