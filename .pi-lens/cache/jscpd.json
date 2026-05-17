@@ -1,0 +1,80 @@
+{
+  "success": true,
+  "clones": [
+    {
+      "fileA": "src/ui/main-menu.ts",
+      "startA": 16,
+      "fileB": "src/ui/settings-menu.ts",
+      "startB": 15,
+      "lines": 7,
+      "tokens": 0
+    },
+    {
+      "fileA": "src/tools.ts",
+      "startA": 167,
+      "fileB": "src/tools.ts",
+      "startB": 148,
+      "lines": 7,
+      "tokens": 0
+    },
+    {
+      "fileA": "src/tools.ts",
+      "startA": 201,
+      "fileB": "src/tools.ts",
+      "startB": 149,
+      "lines": 6,
+      "tokens": 0
+    },
+    {
+      "fileA": "src/tools.ts",
+      "startA": 206,
+      "fileB": "src/tools.ts",
+      "startB": 98,
+      "lines": 11,
+      "tokens": 0
+    },
+    {
+      "fileA": "src/tools.ts",
+      "startA": 227,
+      "fileB": "src/tools.ts",
+      "startB": 201,
+      "lines": 6,
+      "tokens": 0
+    },
+    {
+      "fileA": "src/tools.ts",
+      "startA": 246,
+      "fileB": "src/tools.ts",
+      "startB": 149,
+      "lines": 7,
+      "tokens": 0
+    },
+    {
+      "fileA": "src/tools.ts",
+      "startA": 285,
+      "fileB": "src/tools.ts",
+      "startB": 149,
+      "lines": 6,
+      "tokens": 0
+    },
+    {
+      "fileA": "src/mcp-client.ts",
+      "startA": 167,
+      "fileB": "src/mcp-client.ts",
+      "startB": 160,
+      "lines": 6,
+      "tokens": 0
+    },
+    {
+      "fileA": "src/index.ts",
+      "startA": 314,
+      "fileB": "src/ui/main-menu.ts",
+      "startB": 51,
+      "lines": 7,
+      "tokens": 0
+    }
+  ],
+  "duplicatedLines": 54,
+  "totalLines": 1726,
+  "percentage": 3.13
+}
