@@ -2,12 +2,6 @@
   "success": true,
   "issues": [
     {
-      "type": "devDependency",
-      "name": "@biomejs/biome",
-      "file": "package.json",
-      "line": 46
-    },
-    {
       "type": "export",
       "name": "TransportConfig",
       "file": "src/mcp-client.ts",
@@ -17,7 +11,7 @@
       "type": "export",
       "name": "MenuUI",
       "file": "src/ui/main-menu.ts",
-      "line": 13
+      "line": 14
     }
   ],
   "unusedExports": [
@@ -31,18 +25,11 @@
       "type": "export",
       "name": "MenuUI",
       "file": "src/ui/main-menu.ts",
-      "line": 13
+      "line": 14
     }
   ],
   "unusedFiles": [],
-  "unusedDeps": [
-    {
-      "type": "devDependency",
-      "name": "@biomejs/biome",
-      "file": "package.json",
-      "line": 46
-    }
-  ],
+  "unusedDeps": [],
   "unlistedDeps": [],
-  "summary": "Found 3 issues"
+  "summary": "Found 2 issues"
 }

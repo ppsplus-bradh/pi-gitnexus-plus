@@ -1,4 +1,4 @@
 {
-  "signature": "tests/tools.test.ts::Unresolved from this turn — tests/tools.test.ts:\n🔴 STOP — 1 issue(s) must be fixed:\n  L1: Cannot find module 'vitest' or its corresponding type declarations.",
-  "sessionId": "lens-mpadee0k-aeedb84d"
+  "signature": "src/index.ts|src/ui/main-menu.ts::ℹ️ Advisory — no action required this turn:\n⚠️ Newly unused exports in modified files — check if callers need updating (Knip):\n  src/ui/main-menu.ts:14 — MenuUI\n",
+  "sessionId": "lens-mpadj8ij-e0ea3ed8"
 }
