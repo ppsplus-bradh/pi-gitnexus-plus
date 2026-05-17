@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "createdAt": "2026-05-17T22:51:40.773Z",
+  "createdAt": "2026-05-17T22:52:16.868Z",
   "entries": [
     [
       "src/gitnexus.ts:saveConfig",
@@ -4230,7 +4230,7 @@
           ]
         ],
         "transitionCount": 23,
-        "lastModified": 1779058298321.6912,
+        "lastModified": 1779058334625.6858,
         "exports": [
           "MAX_OUTPUT_CHARS",
           "spawnEnv",
@@ -8487,7 +8487,7 @@
           ]
         ],
         "transitionCount": 31,
-        "lastModified": 1779058298321.6912,
+        "lastModified": 1779058334625.6858,
         "exports": [
           "MAX_OUTPUT_CHARS",
           "spawnEnv",
@@ -12744,7 +12744,7 @@
           ]
         ],
         "transitionCount": 31,
-        "lastModified": 1779058298321.6912,
+        "lastModified": 1779058334625.6858,
         "exports": [
           "MAX_OUTPUT_CHARS",
           "spawnEnv",
@@ -17001,7 +17001,7 @@
           ]
         ],
         "transitionCount": 48,
-        "lastModified": 1779058298321.6912,
+        "lastModified": 1779058334625.6858,
         "exports": [
           "MAX_OUTPUT_CHARS",
           "spawnEnv",
@@ -21258,7 +21258,7 @@
           ]
         ],
         "transitionCount": 65,
-        "lastModified": 1779058298321.6912,
+        "lastModified": 1779058334625.6858,
         "exports": [
           "MAX_OUTPUT_CHARS",
           "spawnEnv",
@@ -25515,7 +25515,7 @@
           ]
         ],
         "transitionCount": 61,
-        "lastModified": 1779058298321.6912,
+        "lastModified": 1779058334625.6858,
         "exports": [
           "MAX_OUTPUT_CHARS",
           "spawnEnv",
@@ -29772,7 +29772,7 @@
           ]
         ],
         "transitionCount": 27,
-        "lastModified": 1779058298321.6912,
+        "lastModified": 1779058334625.6858,
         "exports": [
           "MAX_OUTPUT_CHARS",
           "spawnEnv",
@@ -34029,7 +34029,7 @@
           ]
         ],
         "transitionCount": 46,
-        "lastModified": 1779058298321.6912,
+        "lastModified": 1779058334625.6858,
         "exports": [
           "MAX_OUTPUT_CHARS",
           "spawnEnv",
@@ -38286,7 +38286,7 @@
           ]
         ],
         "transitionCount": 21,
-        "lastModified": 1779058298321.6912,
+        "lastModified": 1779058334625.6858,
         "exports": [
           "MAX_OUTPUT_CHARS",
           "spawnEnv",
@@ -42543,7 +42543,7 @@
           ]
         ],
         "transitionCount": 48,
-        "lastModified": 1779058298321.6912,
+        "lastModified": 1779058334625.6858,
         "exports": [
           "MAX_OUTPUT_CHARS",
           "spawnEnv",
@@ -46800,7 +46800,7 @@
           ]
         ],
         "transitionCount": 42,
-        "lastModified": 1779058298321.6912,
+        "lastModified": 1779058334625.6858,
         "exports": [
           "MAX_OUTPUT_CHARS",
           "spawnEnv",
@@ -51057,7 +51057,7 @@
           ]
         ],
         "transitionCount": 29,
-        "lastModified": 1779058298321.6912,
+        "lastModified": 1779058334625.6858,
         "exports": [
           "MAX_OUTPUT_CHARS",
           "spawnEnv",
@@ -55314,7 +55314,7 @@
           ]
         ],
         "transitionCount": 33,
-        "lastModified": 1779058298321.6912,
+        "lastModified": 1779058334625.6858,
         "exports": [],
         "line": 19
       }
@@ -59547,7 +59547,7 @@
           ]
         ],
         "transitionCount": 44,
-        "lastModified": 1779058298321.6912,
+        "lastModified": 1779058334625.6858,
         "exports": [],
         "line": 47
       }
@@ -63780,7 +63780,7 @@
           ]
         ],
         "transitionCount": 28,
-        "lastModified": 1779058298321.6912,
+        "lastModified": 1779058334625.6858,
         "exports": [],
         "line": 80
       }
@@ -68013,7 +68013,7 @@
           ]
         ],
         "transitionCount": 35,
-        "lastModified": 1779058298321.6912,
+        "lastModified": 1779058334625.6858,
         "exports": [],
         "line": 238
       }
@@ -72246,7 +72246,7 @@
           ]
         ],
         "transitionCount": 24,
-        "lastModified": 1779058298321.6912,
+        "lastModified": 1779058334625.6858,
         "exports": [
           "registerTools"
         ],
@@ -76481,7 +76481,7 @@
           ]
         ],
         "transitionCount": 21,
-        "lastModified": 1779058298321.6912,
+        "lastModified": 1779058334625.6858,
         "exports": [
           "registerTools"
         ],
@@ -80716,7 +80716,7 @@
           ]
         ],
         "transitionCount": 32,
-        "lastModified": 1779058298321.6912,
+        "lastModified": 1779058334625.6858,
         "exports": [
           "registerTools"
         ],
@@ -84951,7 +84951,7 @@
           ]
         ],
         "transitionCount": 50,
-        "lastModified": 1779058298321.6912,
+        "lastModified": 1779058334625.6858,
         "exports": [
           "registerTools"
         ],
@@ -89186,7 +89186,7 @@
           ]
         ],
         "transitionCount": 53,
-        "lastModified": 1779058298321.6912,
+        "lastModified": 1779058334625.6858,
         "exports": [
           "openMainMenu"
         ],
@@ -93421,7 +93421,7 @@
           ]
         ],
         "transitionCount": 25,
-        "lastModified": 1779058298321.6912,
+        "lastModified": 1779058334625.6858,
         "exports": [
           "openMainMenu"
         ],
@@ -97656,7 +97656,7 @@
           ]
         ],
         "transitionCount": 31,
-        "lastModified": 1779058298321.6912,
+        "lastModified": 1779058334625.6858,
         "exports": [
           "openMainMenu"
         ],
@@ -101891,7 +101891,7 @@
           ]
         ],
         "transitionCount": 26,
-        "lastModified": 1779058298321.6912,
+        "lastModified": 1779058334625.6858,
         "exports": [
           "openMainMenu"
         ],
@@ -106126,7 +106126,7 @@
           ]
         ],
         "transitionCount": 55,
-        "lastModified": 1779058298321.6912,
+        "lastModified": 1779058334625.6858,
         "exports": [
           "openSettingsMenu"
         ],
@@ -110361,7 +110361,7 @@
           ]
         ],
         "transitionCount": 23,
-        "lastModified": 1779058298321.6912,
+        "lastModified": 1779058334625.6858,
         "exports": [],
         "line": 45
       }

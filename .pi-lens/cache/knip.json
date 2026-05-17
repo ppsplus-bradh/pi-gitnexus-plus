@@ -2,27 +2,10 @@
   "success": true,
   "issues": [
     {
-      "type": "file",
-      "name": "src/server-api.ts",
-      "file": "src/server-api.ts"
-    },
-    {
       "type": "devDependency",
       "name": "@biomejs/biome",
       "file": "package.json",
       "line": 46
-    },
-    {
-      "type": "export",
-      "name": "setHttpModeCallTool",
-      "file": "src/gitnexus.ts",
-      "line": 365
-    },
-    {
-      "type": "export",
-      "name": "setHttpAnalyze",
-      "file": "src/gitnexus.ts",
-      "line": 372
     },
     {
       "type": "export",
@@ -40,18 +23,6 @@
   "unusedExports": [
     {
       "type": "export",
-      "name": "setHttpModeCallTool",
-      "file": "src/gitnexus.ts",
-      "line": 365
-    },
-    {
-      "type": "export",
-      "name": "setHttpAnalyze",
-      "file": "src/gitnexus.ts",
-      "line": 372
-    },
-    {
-      "type": "export",
       "name": "TransportConfig",
       "file": "src/mcp-client.ts",
       "line": 17
@@ -63,13 +34,7 @@
       "line": 13
     }
   ],
-  "unusedFiles": [
-    {
-      "type": "file",
-      "name": "src/server-api.ts",
-      "file": "src/server-api.ts"
-    }
-  ],
+  "unusedFiles": [],
   "unusedDeps": [
     {
       "type": "devDependency",
@@ -79,5 +44,5 @@
     }
   ],
   "unlistedDeps": [],
-  "summary": "Found 6 issues"
+  "summary": "Found 3 issues"
 }

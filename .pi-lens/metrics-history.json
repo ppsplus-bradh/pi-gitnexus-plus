@@ -1,0 +1,181 @@
+{
+  "version": 1,
+  "files": {
+    "../../../../tmp/pi-agent-3ca218a6-0114-434-6373ee43/src/gitnexus.ts": {
+      "latest": {
+        "commit": "030179d",
+        "timestamp": "2026-05-17T22:51:47.749Z",
+        "mi": 26.2,
+        "cognitive": 284,
+        "nesting": 7,
+        "lines": 356,
+        "maxCyclomatic": 87,
+        "entropy": 6.65
+      },
+      "history": [
+        {
+          "commit": "030179d",
+          "timestamp": "2026-05-17T22:51:47.749Z",
+          "mi": 26.2,
+          "cognitive": 284,
+          "nesting": 7,
+          "lines": 356,
+          "maxCyclomatic": 87,
+          "entropy": 6.65
+        }
+      ],
+      "trend": "stable"
+    },
+    "../../../../tmp/pi-agent-3ca218a6-0114-434-6373ee43/tests/config.test.ts": {
+      "latest": {
+        "commit": "030179d",
+        "timestamp": "2026-05-17T22:51:47.778Z",
+        "mi": 55.8,
+        "cognitive": 10,
+        "nesting": 5,
+        "lines": 35,
+        "maxCyclomatic": 20,
+        "entropy": 4.69
+      },
+      "history": [
+        {
+          "commit": "030179d",
+          "timestamp": "2026-05-17T22:51:47.778Z",
+          "mi": 55.8,
+          "cognitive": 10,
+          "nesting": 5,
+          "lines": 35,
+          "maxCyclomatic": 20,
+          "entropy": 4.69
+        }
+      ],
+      "trend": "stable"
+    },
+    "../../../../tmp/pi-agent-3ca218a6-0114-434-6373ee43/src/mcp-client.ts": {
+      "latest": {
+        "commit": "030179d",
+        "timestamp": "2026-05-17T22:51:51.809Z",
+        "mi": 34.5,
+        "cognitive": 54,
+        "nesting": 5,
+        "lines": 211,
+        "maxCyclomatic": 14,
+        "entropy": 6.56
+      },
+      "history": [
+        {
+          "commit": "030179d",
+          "timestamp": "2026-05-17T22:51:51.809Z",
+          "mi": 34.5,
+          "cognitive": 54,
+          "nesting": 5,
+          "lines": 211,
+          "maxCyclomatic": 14,
+          "entropy": 6.56
+        }
+      ],
+      "trend": "stable"
+    },
+    "../../../../tmp/pi-agent-3ca218a6-0114-434-6373ee43/tests/gitnexus.test.ts": {
+      "latest": {
+        "commit": "030179d",
+        "timestamp": "2026-05-17T22:51:58.165Z",
+        "mi": 30.6,
+        "cognitive": 0,
+        "nesting": 3,
+        "lines": 129,
+        "maxCyclomatic": 1,
+        "entropy": 3.78
+      },
+      "history": [
+        {
+          "commit": "030179d",
+          "timestamp": "2026-05-17T22:51:58.165Z",
+          "mi": 30.6,
+          "cognitive": 0,
+          "nesting": 3,
+          "lines": 129,
+          "maxCyclomatic": 1,
+          "entropy": 3.78
+        }
+      ],
+      "trend": "stable"
+    },
+    "../../../../tmp/pi-agent-e6240138-6ff6-4b8-2ce174f7/src/tools.ts": {
+      "latest": {
+        "commit": "030179d",
+        "timestamp": "2026-05-17T22:52:21.919Z",
+        "mi": 19.7,
+        "cognitive": 107,
+        "nesting": 4,
+        "lines": 273,
+        "maxCyclomatic": 36,
+        "entropy": 6.28
+      },
+      "history": [
+        {
+          "commit": "030179d",
+          "timestamp": "2026-05-17T22:52:21.919Z",
+          "mi": 19.7,
+          "cognitive": 107,
+          "nesting": 4,
+          "lines": 273,
+          "maxCyclomatic": 36,
+          "entropy": 6.28
+        }
+      ],
+      "trend": "stable"
+    },
+    "../../../../tmp/pi-agent-e6240138-6ff6-4b8-2ce174f7/tests/tools.test.ts": {
+      "latest": {
+        "commit": "030179d",
+        "timestamp": "2026-05-17T22:52:21.934Z",
+        "mi": 22.9,
+        "cognitive": 15,
+        "nesting": 3,
+        "lines": 235,
+        "maxCyclomatic": 11,
+        "entropy": 5.37
+      },
+      "history": [
+        {
+          "commit": "030179d",
+          "timestamp": "2026-05-17T22:52:21.934Z",
+          "mi": 22.9,
+          "cognitive": 15,
+          "nesting": 3,
+          "lines": 235,
+          "maxCyclomatic": 11,
+          "entropy": 5.37
+        }
+      ],
+      "trend": "stable"
+    },
+    "../../../../tmp/pi-agent-e6240138-6ff6-4b8-2ce174f7/src/mcp-client.ts": {
+      "latest": {
+        "commit": "030179d",
+        "timestamp": "2026-05-17T22:52:26.755Z",
+        "mi": 34.5,
+        "cognitive": 54,
+        "nesting": 5,
+        "lines": 211,
+        "maxCyclomatic": 14,
+        "entropy": 6.56
+      },
+      "history": [
+        {
+          "commit": "030179d",
+          "timestamp": "2026-05-17T22:52:26.755Z",
+          "mi": 34.5,
+          "cognitive": 54,
+          "nesting": 5,
+          "lines": 211,
+          "maxCyclomatic": 14,
+          "entropy": 6.56
+        }
+      ],
+      "trend": "stable"
+    }
+  },
+  "capturedAt": "2026-05-17T22:52:31.755Z"
+}

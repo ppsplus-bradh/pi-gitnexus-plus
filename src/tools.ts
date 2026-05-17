@@ -24,6 +24,9 @@ function buildRepoArgs(
   if (normalizedRepo) {
     return { ...params, repo: normalizedRepo };
   }
+  if (mcpClient.transportType === 'http') {
+    return params;
+  }
   const repoRoot = findGitNexusRoot(ctx.cwd);
   return repoRoot ? { ...params, repo: repoRoot } : params;
 }
@@ -39,6 +42,7 @@ function looksLikeRepoPath(repo: string | undefined): boolean {
 }
 
 function shouldAllowQuery(ctx: ExtensionContext, params: Record<string, unknown>): boolean {
+  if (mcpClient.transportType === 'http') return true;
   return hasRepoOverride(params) || findGitNexusIndex(ctx.cwd);
 }
 
@@ -289,6 +293,111 @@ export function registerTools(pi: ExtensionAPI): void {
       if (!shouldAllowQuery(ctx, params as Record<string, unknown>)) return text(NO_INDEX);
       const out = await mcpClient.callTool('cypher', buildRepoArgs(ctx, params as Record<string, unknown>), ctx.cwd);
       return text(out || 'No results.');
+    },
+  });
+
+  pi.registerTool({
+    name: 'gitnexus_route_map',
+    label: 'GitNexus Route Map',
+    description: 'Show API route mappings: components/hooks that fetch endpoints, and handler files.',
+    parameters: Type.Object({
+      route: Type.Optional(Type.String({ minLength: 1, maxLength: 500 })),
+      repo: Type.Optional(Type.String({ minLength: 1, maxLength: 500 })),
+    }),
+    execute: async (_id, params, _signal, _onUpdate, ctx) => {
+      if (!shouldAllowQuery(ctx, params as Record<string, unknown>)) return text(NO_INDEX);
+      const out = await mcpClient.callTool('route_map', buildRepoArgs(ctx, params as Record<string, unknown>), ctx.cwd);
+      return text(out || 'No results.');
+    },
+  });
+
+  pi.registerTool({
+    name: 'gitnexus_tool_map',
+    label: 'GitNexus Tool Map',
+    description: 'Show MCP/RPC tool definitions: where tools are defined, handlers, descriptions.',
+    parameters: Type.Object({
+      tool: Type.Optional(Type.String({ minLength: 1, maxLength: 500 })),
+      repo: Type.Optional(Type.String({ minLength: 1, maxLength: 500 })),
+    }),
+    execute: async (_id, params, _signal, _onUpdate, ctx) => {
+      if (!shouldAllowQuery(ctx, params as Record<string, unknown>)) return text(NO_INDEX);
+      const out = await mcpClient.callTool('tool_map', buildRepoArgs(ctx, params as Record<string, unknown>), ctx.cwd);
+      return text(out || 'No results.');
+    },
+  });
+
+  pi.registerTool({
+    name: 'gitnexus_shape_check',
+    label: 'GitNexus Shape Check',
+    description: 'Check API response shapes against consumer property accesses. Find shape drift.',
+    parameters: Type.Object({
+      route: Type.Optional(Type.String({ minLength: 1, maxLength: 500 })),
+      repo: Type.Optional(Type.String({ minLength: 1, maxLength: 500 })),
+    }),
+    execute: async (_id, params, _signal, _onUpdate, ctx) => {
+      if (!shouldAllowQuery(ctx, params as Record<string, unknown>)) return text(NO_INDEX);
+      const out = await mcpClient.callTool('shape_check', buildRepoArgs(ctx, params as Record<string, unknown>), ctx.cwd);
+      return text(out || 'No results.');
+    },
+  });
+
+  pi.registerTool({
+    name: 'gitnexus_api_impact',
+    label: 'GitNexus API Impact',
+    description: 'Pre-change impact report for an API route handler. Shows consumers, response fields, middleware.',
+    parameters: Type.Object({
+      route: Type.Optional(Type.String({ minLength: 1, maxLength: 500 })),
+      file: Type.Optional(Type.String({ minLength: 1, maxLength: 500 })),
+      repo: Type.Optional(Type.String({ minLength: 1, maxLength: 500 })),
+    }),
+    execute: async (_id, params, _signal, _onUpdate, ctx) => {
+      if (!shouldAllowQuery(ctx, params as Record<string, unknown>)) return text(NO_INDEX);
+      const out = await mcpClient.callTool('api_impact', buildRepoArgs(ctx, params as Record<string, unknown>), ctx.cwd);
+      return text(out || 'No results.');
+    },
+  });
+
+  pi.registerTool({
+    name: 'gitnexus_group_list',
+    label: 'GitNexus Group List',
+    description: 'List all configured repository groups, or return details for one group.',
+    parameters: Type.Object({
+      name: Type.Optional(Type.String({ minLength: 1, maxLength: 200 })),
+    }),
+    execute: async (_id, params, _signal, _onUpdate, ctx) => {
+      const out = await mcpClient.callTool('group_list', params as Record<string, unknown>, ctx.cwd);
+      return text(out || 'No groups found.');
+    },
+  });
+
+  pi.registerTool({
+    name: 'gitnexus_group_sync',
+    label: 'GitNexus Group Sync',
+    description: 'Rebuild the Contract Registry for a repository group.',
+    parameters: Type.Object({
+      name: Type.String({ minLength: 1, maxLength: 200 }),
+      skipEmbeddings: Type.Optional(Type.Boolean()),
+      exactOnly: Type.Optional(Type.Boolean()),
+    }),
+    execute: async (_id, params, _signal, _onUpdate, ctx) => {
+      const typedParams = params as { name: string; skipEmbeddings?: boolean; exactOnly?: boolean };
+      if (!typedParams.name?.trim()) return text('A group name is required.');
+      const out = await mcpClient.callTool('group_sync', params as Record<string, unknown>, ctx.cwd);
+      return text(out || 'Sync complete.');
+    },
+  });
+
+  pi.registerTool({
+    name: 'gitnexus_read_resource',
+    label: 'GitNexus Read Resource',
+    description: 'Read a GitNexus MCP resource by URI (gitnexus://repos, gitnexus://setup, gitnexus://repo/{name}/context, etc.).',
+    parameters: Type.Object({
+      uri: Type.String({ minLength: 1, maxLength: 500 }),
+    }),
+    execute: async (_id, params, _signal, _onUpdate, ctx) => {
+      const typedParams = params as { uri: string };
+      const out = await mcpClient.readResource(typedParams.uri, ctx.cwd);
+      return text(out || 'No content.');
     },
   });
 
