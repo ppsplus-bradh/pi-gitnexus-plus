@@ -1,0 +1,4 @@
+{
+  "signature": "src/index.ts|src/ui/main-menu.ts::ℹ️ Advisory — no action required this turn:\n⚠️ Newly unused exports in modified files — check if callers need updating (Knip):\n  src/ui/main-menu.ts:14 — MenuUI\n",
+  "sessionId": "lens-mpadj8ij-e0ea3ed8"
+}

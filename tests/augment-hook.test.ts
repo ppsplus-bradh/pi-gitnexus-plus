@@ -233,4 +233,26 @@ describe('auto-augment hook', () => {
     expect(result).toBeUndefined();
     expect(runAugmentMock).not.toHaveBeenCalled();
   });
+
+  it('in HTTP mode, augment hook still appends graph context from runAugment()', async () => {
+    // The augment hook always calls runAugment() regardless of transport mode.
+    // HTTP-mode routing happens inside runAugment() itself (via httpModeCallTool injection).
+    runAugmentMock.mockResolvedValue('HTTP graph context: calls fetchUser, validateToken');
+
+    const { default: register } = await import('../src/index');
+    register(createPi() as any);
+
+    const result = await fireToolResult({
+      toolName: 'grep',
+      input: { pattern: 'authenticate' },
+      content: [{ type: 'text', text: 'src/auth.ts:10:function authenticate()' }],
+    });
+
+    // runAugment is still the function called (it internally branches on transport)
+    expect(runAugmentMock).toHaveBeenCalledWith('authenticate', '/repo-root');
+    expect(result).toBeDefined();
+    expect(result.content).toHaveLength(2);
+    expect(result.content[1].text).toContain('HTTP graph context: calls fetchUser, validateToken');
+    expect(result.content[1].text).toContain('---');
+  });
 });

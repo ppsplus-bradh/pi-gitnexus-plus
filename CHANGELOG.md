@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.7.0
+
+- **HTTP transport support** — the extension now connects to GitNexus via either **stdio** (default, spawns local `gitnexus mcp` process) or **Streamable HTTP** (for GitNexus servers running in Docker or remotely). Configure via `/gitnexus settings → MCP transport → http` and set the Server URL, or use the new `--gitnexus-server` CLI flag for one-off connections (e.g. `pi --gitnexus-server http://localhost:4747/api/mcp`).
+- **MCP SDK migration** — replaced the handrolled ~175-line stdio JSON-RPC 2.0 client with the official `@modelcontextprotocol/sdk` v1.29.0 `Client` class. Eliminates manual JSON-RPC framing, buffer management, handshake code, and pending-request tracking. The SDK handles all protocol mechanics, SSE parsing, and session management.
+- **7 new tools** (14 total) — registered 6 additional MCP tools exposed by the server: `gitnexus_route_map` (API route mappings), `gitnexus_tool_map` (tool definitions), `gitnexus_shape_check` (response shape validation), `gitnexus_api_impact` (pre-change API impact report), `gitnexus_group_list` (repository groups), `gitnexus_group_sync` (contract registry rebuild). Plus `gitnexus_read_resource` for reading any MCP resource by URI (repo context, clusters, processes, graph schema, etc.).
+- **Docker server management** — new `GitNexusServerApi` REST client for non-MCP server endpoints. `/gitnexus analyze` in HTTP mode triggers server-side analysis via `POST /api/analyze` with job polling and progress notifications. Supports both local paths (inside the container's workspace directory) and git URLs (`/gitnexus analyze https://github.com/user/repo.git`). `/gitnexus status` shows server version, transport info, and indexed repos via REST API.
+- **4 new settings** — MCP transport (`stdio`/`http`), Server URL, Auth token (Bearer), and Workspace directory (Docker container path mapping, default `/workspace`). All persist to `~/.pi/pi-gitnexus.json`.
+- **New `--gitnexus-server` CLI flag** — overrides saved config to force HTTP transport for a single session. Example: `pi --gitnexus-server http://localhost:4747/api/mcp`.
+- **MCP resource support** — `gitnexus_read_resource` can read 10 resource types: repo overview, functional clusters, execution flows, graph schema, process traces, cross-repo contracts, and more.
+- **Expanded system prompt** — in HTTP mode, the agent's system prompt lists all 14 tools. In stdio mode, the original 7.
+- **Skills updated** — all 5 workflow skills now reference the new API-focused tools (`api_impact`, `shape_check`, `route_map`, `group_list`, `group_sync`).
+- **Backwards compatible** — `mcpTransport` defaults to `stdio`. Existing config and tool names are unchanged. Users who never configure HTTP see identical behavior.
+- **New dependency** — `@modelcontextprotocol/sdk ^1.29.0`. New peer dependency: `zod >=3.25` (already provided by pi host at runtime).
+
 ## 0.6.3
 
 - **MCP idle shutdown** — `gitnexus mcp` now stops after 10 minutes of inactivity (configurable via `/gitnexus settings → MCP idle timeout`; `'off'` keeps it alive for the session, matching prior behavior). Releases the Python process and graph memory during long quiet stretches; the next MCP-routed call respawns at the cold-start cost (~1–3s). Auto-augment is unaffected — it uses a separate one-shot `gitnexus augment` subprocess.

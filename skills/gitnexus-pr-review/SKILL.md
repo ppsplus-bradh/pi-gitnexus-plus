@@ -32,6 +32,8 @@ description: "Use when the user wants to review a pull request, understand what 
 - [ ] gitnexus_detect_changes to map changes to affected execution flows
 - [ ] gitnexus_impact on each non-trivial changed symbol
 - [ ] Review d=1 items (WILL BREAK) — are callers updated?
+- [ ] gitnexus_api_impact on any changed route handlers
+- [ ] gitnexus_shape_check on routes with changed response shapes
 - [ ] gitnexus_context on key changed symbols to understand full picture
 - [ ] Check if affected processes have test coverage
 - [ ] Assess overall risk level
@@ -47,6 +49,8 @@ description: "Use when the user wants to review a pull request, understand what 
 | **Completeness** | `detect_changes` shows all affected flows — are they all handled? |
 | **Test coverage** | `impact({includeTests: true})` shows which tests touch changed code |
 | **Breaking changes** | d=1 upstream items that aren't updated in the PR = potential breakage |
+| **API contracts** | `api_impact` shows consumers and response shape; `shape_check` finds drift |
+| **Cross-repo** | `group_list` / `group_sync` for multi-repo contract validation |
 
 ## Risk Assessment
 

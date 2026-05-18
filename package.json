@@ -35,9 +35,11 @@
     "@earendil-works/pi-ai": ">=0.74",
     "@earendil-works/pi-coding-agent": ">=0.74",
     "@earendil-works/pi-tui": ">=0.74",
-    "typebox": ">=1.0"
+    "typebox": ">=1.0",
+    "zod": ">=3.25"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "cross-spawn": "7.0.6"
   },
   "devDependencies": {

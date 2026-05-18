@@ -1,8 +1,9 @@
-import { delimiter } from 'node:path';
+import { basename, delimiter } from 'node:path';
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import spawn from 'cross-spawn';
-import { clearIndexCache, extractFilePatternsFromContent, extractFilesFromReadMany, extractPattern, findGitNexusIndex, findGitNexusRoot, type GitNexusConfig, gitnexusCmd, loadSavedConfig, resolveGitNexusCmd, runAugment, runGitNexusAnalyze, setAugmentTimeout, setGitnexusCmd, spawnEnv, updateSpawnEnv } from './gitnexus';
+import { clearIndexCache, extractFilePatternsFromContent, extractFilesFromReadMany, extractPattern, findGitNexusIndex, findGitNexusRoot, type GitNexusConfig, gitnexusCmd, loadSavedConfig, resolveGitNexusCmd, runAugment, runGitNexusAnalyze, setAugmentTimeout, setGitnexusCmd, setHttpAnalyze, setHttpModeCallTool, spawnEnv, updateSpawnEnv } from './gitnexus';
 import { mcpClient, setMcpIdleTimeout } from './mcp-client';
+import { GitNexusServerApi } from './server-api';
 import { registerTools } from './tools';
 import { openMainMenu } from './ui/main-menu';
 
@@ -91,6 +92,9 @@ async function probeGitNexusBinary(): Promise<boolean> {
   return trySpawn(bin, [...args, '--version']);
 }
 
+/** REST API client for HTTP transport mode. null when using stdio. */
+let serverApi: GitNexusServerApi | null = null;
+
 /** Cached from session_start/session_switch — avoids re-probing on every /gitnexus status. */
 let binaryAvailable = false;
 
@@ -130,6 +134,12 @@ function resetAugmentCaches(): void {
 export default function(pi: ExtensionAPI) {
   registerTools(pi);
 
+  pi.registerFlag('gitnexus-server', {
+    type: 'string',
+    default: '',
+    description: 'GitNexus server URL for HTTP transport (e.g. "http://localhost:4747/api/mcp"). Overrides saved config.',
+  });
+
   pi.registerFlag('gitnexus-cmd', {
     type: 'string',
     default: '',
@@ -138,14 +148,23 @@ export default function(pi: ExtensionAPI) {
 
   // Append a one-liner so the agent understands graph context in search results.
   pi.on('before_agent_start', async (event: { systemPrompt?: string }, ctx: ExtensionContext) => {
-    if (!findGitNexusIndex(ctx.cwd)) return;
+    // HTTP mode: tools are always available (no local index needed)
+    if (mcpClient.transportType !== 'http' && !findGitNexusIndex(ctx.cwd)) return;
     if (event.systemPrompt == null) return;
+
+    const toolList = mcpClient.transportType === 'http'
+      ? 'gitnexus_query, gitnexus_context, gitnexus_impact, gitnexus_detect_changes, ' +
+        'gitnexus_list_repos, gitnexus_rename, gitnexus_cypher, gitnexus_route_map, ' +
+        'gitnexus_tool_map, gitnexus_shape_check, gitnexus_api_impact, ' +
+        'gitnexus_group_list, gitnexus_group_sync, and gitnexus_read_resource'
+      : 'gitnexus_query, gitnexus_context, gitnexus_impact, gitnexus_detect_changes, ' +
+        'gitnexus_list_repos, gitnexus_rename, and gitnexus_cypher';
+
     return {
       systemPrompt:
         event.systemPrompt +
         '\n\n[GitNexus active] Graph context will appear after search results. ' +
-        'Use gitnexus_query, gitnexus_context, gitnexus_impact, gitnexus_detect_changes, ' +
-        'gitnexus_list_repos, gitnexus_rename, and gitnexus_cypher for deeper analysis. ' +
+        `Use ${toolList} for deeper analysis. ` +
         'If the index is stale after code changes, run /gitnexus analyze to rebuild it.',
     };
   });
@@ -250,23 +269,72 @@ export default function(pi: ExtensionAPI) {
     if (cfg.augmentTimeout) setAugmentTimeout(cfg.augmentTimeout);
     if (cfg.mcpIdleTimeout != null) setMcpIdleTimeout(cfg.mcpIdleTimeout);
 
-    // Resolve command: default → saved config → CLI flag (highest precedence)
-    const flag = pi.getFlag('gitnexus-cmd') as string | undefined;
-    setGitnexusCmd(resolveGitNexusCmd(flag, cfg.cmd));
+    // CLI flag overrides saved config for transport
+    const serverFlag = pi.getFlag('gitnexus-server') as string | undefined;
+    if (serverFlag?.trim()) {
+      cfg.mcpTransport = 'http';
+      cfg.mcpServerUrl = serverFlag.trim();
+    }
 
-    binaryAvailable = await probeGitNexusBinary();
-    if (!findGitNexusIndex(ctx.cwd)) return;
+    if (cfg.mcpTransport === 'http' && cfg.mcpServerUrl) {
+      // HTTP mode: connect via Streamable HTTP to a remote GitNexus server
+      mcpClient.setConfig({ type: 'http', url: cfg.mcpServerUrl, authToken: cfg.mcpAuthToken });
+      serverApi = GitNexusServerApi.fromMcpUrl(cfg.mcpServerUrl, cfg.mcpAuthToken);
 
-    if (binaryAvailable) {
-      ctx.ui.notify(
-        'GitNexus: knowledge graph active — searches will be enriched automatically.',
-        'info',
-      );
+      // Inject HTTP-mode functions into gitnexus.ts (avoids circular imports)
+      setHttpModeCallTool((name, args, cwd) => mcpClient.callTool(name, args, cwd));
+      setHttpAnalyze(async (cwd) => {
+        const repoName = basename(cwd);
+        const wsDir = cfg.workspaceDir || '/workspace';
+        const target = { path: `${wsDir}/${repoName}` };
+        try {
+          const result = await serverApi!.analyzeAndWait(target);
+          return result.status === 'complete' ? 0 : 1;
+        } catch {
+          return 1;
+        }
+      });
+
+      const healthy = await serverApi.health();
+      binaryAvailable = healthy;
+      if (healthy) {
+        ctx.ui.notify(
+          `GitNexus: connected to server at ${cfg.mcpServerUrl}`,
+          'info',
+        );
+      } else {
+        ctx.ui.notify(
+          `GitNexus: server at ${cfg.mcpServerUrl} is not reachable.`,
+          'warning',
+        );
+      }
     } else {
-      ctx.ui.notify(
-        'GitNexus index found but gitnexus is not on PATH. Install: npm i -g gitnexus',
-        'warning',
-      );
+      // Stdio mode: clear HTTP injections, use local binary
+      setHttpModeCallTool(null);
+      setHttpAnalyze(null);
+      serverApi = null;
+
+      // Resolve command: default → saved config → CLI flag (highest precedence)
+      const flag = pi.getFlag('gitnexus-cmd') as string | undefined;
+      setGitnexusCmd(resolveGitNexusCmd(flag, cfg.cmd));
+
+      const cmd = gitnexusCmd;
+      mcpClient.setConfig({ type: 'stdio', cmd, env: spawnEnv });
+
+      binaryAvailable = await probeGitNexusBinary();
+      if (!findGitNexusIndex(ctx.cwd)) return;
+
+      if (binaryAvailable) {
+        ctx.ui.notify(
+          'GitNexus: knowledge graph active — searches will be enriched automatically.',
+          'info',
+        );
+      } else {
+        ctx.ui.notify(
+          'GitNexus index found but gitnexus is not on PATH. Install: npm i -g gitnexus',
+          'warning',
+        );
+      }
     }
   }
 
@@ -277,7 +345,7 @@ export default function(pi: ExtensionAPI) {
   });
 
   pi.on('session_shutdown', () => {
-    mcpClient.stop();
+    void mcpClient.stop();
   });
 
   const subcommands = ['status', 'analyze', 'on', 'off', 'settings', 'query', 'context', 'impact', 'help'];
@@ -297,6 +365,27 @@ export default function(pi: ExtensionAPI) {
 
       // /gitnexus status
       if (sub === 'status') {
+        if (mcpClient.transportType === 'http' && serverApi) {
+          try {
+            const [info, repos] = await Promise.all([serverApi.info(), serverApi.listRepos()]);
+            const repoSummary = repos.length > 0
+              ? repos.map(r => `  ${r.name} (${r.stats.nodes} nodes, ${r.stats.edges} edges)`).join('\n')
+              : '  (no repos indexed)';
+            const augmentLine = augmentEnabled
+              ? `Auto-augment: on (${hookFires} intercepted, ${augmentHits} enriched this session)`
+              : 'Auto-augment: off';
+            ctx.ui.notify(
+              `GitNexus Server v${info.version}\n` +
+              `Transport: HTTP (${cfg.mcpServerUrl})\n` +
+              `Repos (${repos.length}):\n${repoSummary}\n` +
+              augmentLine,
+              'info',
+            );
+          } catch (err) {
+            ctx.ui.notify(`GitNexus status failed: ${err instanceof Error ? err.message : 'unknown error'}`, 'error');
+          }
+          return;
+        }
         if (!binaryAvailable) {
           ctx.ui.notify('gitnexus is not installed. Install: npm i -g gitnexus', 'warning');
           return;
@@ -326,6 +415,10 @@ export default function(pi: ExtensionAPI) {
 
       // /gitnexus help
       if (sub === 'help') {
+        const httpNote = mcpClient.transportType === 'http'
+          ? '\nHTTP mode: connected to remote server. /gitnexus analyze sends ' +
+            'analysis jobs to the server. Supports URL and path targets.\n'
+          : '';
         ctx.ui.notify(
           '/gitnexus — GitNexus knowledge graph\n' +
           '\n' +
@@ -338,11 +431,14 @@ export default function(pi: ExtensionAPI) {
           '  /gitnexus query <q>   — search execution flows\n' +
           '  /gitnexus context <n> — callers/callees of a symbol\n' +
           '  /gitnexus impact <n>  — blast radius of a change\n' +
+          httpNote +
           '\n' +
           'Tools (always available to the agent):\n' +
           '  gitnexus_list_repos, gitnexus_query, gitnexus_context,\n' +
           '  gitnexus_impact, gitnexus_detect_changes,\n' +
-          '  gitnexus_rename, gitnexus_cypher',
+          '  gitnexus_rename, gitnexus_cypher, gitnexus_route_map,\n' +
+          '  gitnexus_tool_map, gitnexus_shape_check, gitnexus_api_impact,\n' +
+          '  gitnexus_group_list, gitnexus_group_sync, gitnexus_read_resource',
           'info',
         );
         return;
@@ -366,6 +462,9 @@ export default function(pi: ExtensionAPI) {
           binaryAvailable,
           gitnexusCmd,
           spawnEnv,
+          transportType: mcpClient.transportType,
+          serverApi,
+          workspaceDir: cfg.workspaceDir || '/workspace',
           getHookFires: () => hookFires,
           getAugmentHits: () => augmentHits,
           findGitNexusIndex,
@@ -385,6 +484,41 @@ export default function(pi: ExtensionAPI) {
 
       // /gitnexus analyze
       if (sub === 'analyze') {
+        if (mcpClient.transportType === 'http' && serverApi) {
+          augmentEnabled = false;
+          const wsDir = cfg.workspaceDir || '/workspace';
+          let target: { path?: string; url?: string; name?: string };
+          if (rest.startsWith('http')) {
+            target = { url: rest };
+          } else if (rest.trim()) {
+            target = { path: `${wsDir}/${rest.trim()}` };
+          } else {
+            target = { path: `${wsDir}/${basename(ctx.cwd)}` };
+          }
+          ctx.ui.notify('GitNexus: analyzing on server, this may take a while…', 'info');
+          try {
+            const result = await serverApi.analyzeAndWait(target, (status) => {
+              ctx.ui.notify(
+                `GitNexus: ${status.progress.phase} — ${status.progress.percent}% ${status.progress.message}`,
+                'info',
+              );
+            });
+            await mcpClient.stop();
+            clearIndexCache();
+            resetAugmentCaches();
+            if (result.status === 'complete') {
+              augmentEnabled = true;
+              ctx.ui.notify('GitNexus: server analysis complete. Knowledge graph ready.', 'info');
+            } else {
+              augmentEnabled = true;
+              ctx.ui.notify(`GitNexus: analysis failed — ${result.error || 'unknown error'}`, 'error');
+            }
+          } catch (err) {
+            augmentEnabled = true;
+            ctx.ui.notify(`GitNexus: analysis failed — ${err instanceof Error ? err.message : 'unknown error'}`, 'error');
+          }
+          return;
+        }
         if (!binaryAvailable) {
           ctx.ui.notify('gitnexus is not installed. Install: npm i -g gitnexus', 'warning');
           return;

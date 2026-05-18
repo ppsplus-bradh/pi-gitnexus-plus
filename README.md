@@ -32,22 +32,36 @@ Agent calls read_many([api.ts, db.ts, router.ts])
       <call graph context for db>
 ```
 
-Seven tools are also registered directly in pi — the agent can use them explicitly for deeper analysis without any setup.
+Fourteen tools are registered directly in pi — the agent can use them explicitly for deeper analysis without any setup.
 
 ## Requirements
 
-- [gitnexus](https://github.com/abhigyanpatwari/GitNexus) >= 1.4.8 available as `gitnexus` on PATH (e.g. `npm i -g gitnexus`)
-- A GitNexus index in your project: run `/gitnexus analyze`
+You need **one** of the following:
 
-The extension never installs anything automatically. It assumes `gitnexus` is on PATH. If your setup differs, use `/gitnexus settings` to set a custom command (e.g. `npx gitnexus@latest`).
+- **Local CLI**: [gitnexus](https://github.com/abhigyanpatwari/GitNexus) >= 1.4.8 on PATH (e.g. `npm i -g gitnexus`), OR
+- **HTTP server**: A GitNexus server accessible over HTTP (e.g. running in Docker at `http://localhost:4747/api/mcp`)
+
+The extension never installs anything automatically. If your local CLI setup differs from the default, use `/gitnexus settings` to set a custom command (e.g. `npx gitnexus@latest`).
 
 ## Getting started
+
+### Option A: Local CLI (stdio transport)
 
 1. Install the extension: `pi install npm:pi-gitnexus`
 2. Install gitnexus: `npm i -g gitnexus`
 3. Open your project in pi
 4. Run `/gitnexus analyze` to build the knowledge graph
 5. Done — file reads and searches are now enriched automatically
+
+### Option B: HTTP server (e.g. Docker)
+
+1. Install the extension: `pi install npm:pi-gitnexus`
+2. Start the GitNexus server (e.g. `docker run -p 4747:4747 -v /path/to/repos:/workspace gitnexus/server`)
+3. Start pi with the server flag: `pi --gitnexus-server http://localhost:4747/api/mcp`
+4. Run `/gitnexus analyze` to trigger server-side indexing
+5. Done — all tools and auto-augment work over HTTP
+
+Or configure permanently via `/gitnexus settings` → MCP transport → `http`, then set the Server URL.
 
 ## What triggers augmentation
 
@@ -70,9 +84,10 @@ Each tool result augments up to 3 patterns in parallel (up to 5 for `read_many`)
 |---|---|
 | `/gitnexus` | Open the main menu (status, Analyze, Settings, Help) |
 | `/gitnexus status` | Show index status and session enrichment count |
-| `/gitnexus analyze` | Build or rebuild the knowledge graph |
+| `/gitnexus analyze` | Build or rebuild the knowledge graph (local CLI or server-side) |
+| `/gitnexus analyze <url>` | Clone and index a git repo by URL (HTTP mode only) |
 | `/gitnexus on` / `/gitnexus off` | Enable/disable auto-augment (tools unaffected) |
-| `/gitnexus settings` | Open the settings panel (auto-augment, timeout, limits, command) |
+| `/gitnexus settings` | Open the settings panel |
 | `/gitnexus <pattern>` | Manual graph lookup for a symbol or pattern |
 | `/gitnexus query <text>` | Search execution flows |
 | `/gitnexus context <name>` | 360° view of a symbol: callers, callees, processes |
@@ -92,6 +107,13 @@ The following tools are registered in pi and always available to the agent:
 | `gitnexus_detect_changes` | Analyze staged/unstaged/all/compare git changes and affected execution flows |
 | `gitnexus_rename` | Coordinated multi-file rename preview/apply through the knowledge graph |
 | `gitnexus_cypher` | Execute raw Cypher queries against the graph |
+| `gitnexus_route_map` | Show API route mappings: consumers, handlers, middleware |
+| `gitnexus_tool_map` | Show MCP/RPC tool definitions and handler locations |
+| `gitnexus_shape_check` | Check API response shapes against consumer property accesses |
+| `gitnexus_api_impact` | Pre-change impact report for an API route handler |
+| `gitnexus_group_list` | List configured repository groups |
+| `gitnexus_group_sync` | Rebuild the contract registry for a repository group |
+| `gitnexus_read_resource` | Read a GitNexus MCP resource by URI (repo context, clusters, processes, schema, etc.) |
 
 ## Skills
 
@@ -113,25 +135,56 @@ Skills are loaded on-demand — only the description is in context until the age
 
 **Session dedup cache** — each symbol or filename is augmented at most once per session (case-insensitive). Patterns with results are cached in `augmentedCache`; patterns that returned empty are tracked in a separate `emptyCache` to prevent unbounded retries while still allowing retries after an index rebuild (both caches clear on session reset and after a successful `/gitnexus analyze`).
 
-**MCP client** — tools (list_repos, query, context, impact, detect_changes, rename, cypher) communicate with `gitnexus mcp` over a stdio pipe. The process is spawned lazily on the first tool call and stopped after 10 minutes of inactivity (configurable via `/gitnexus settings → MCP idle timeout`; set to `off` to keep it alive for the whole session). No network socket, no port.
+**MCP transport** — tools communicate with GitNexus via the [MCP SDK](https://github.com/modelcontextprotocol/typescript-sdk) (`@modelcontextprotocol/sdk`). Two transports are supported:
 
-**Session lifecycle** — on session start/switch, the extension resolves the full shell PATH through `/bin/sh` (picking up nvm/fnm/volta without depending on a user shell like nushell), probes the binary, checks for an index, and notifies accordingly. The MCP process is restarted with the new working directory.
+- **Stdio** (default) — spawns `gitnexus mcp` as a child process. Communication over stdin/stdout pipe. Lazily started on first tool call, stopped after 10 minutes of inactivity (configurable). No network socket, no port.
+- **Streamable HTTP** — connects to a GitNexus HTTP server (e.g. running in Docker). Uses the MCP Streamable HTTP protocol with session management. Configure via `--gitnexus-server` flag or `/gitnexus settings`.
+
+In HTTP mode, auto-augment routes through the `query` tool instead of the CLI subprocess. All 14 tools and MCP resources work over both transports.
+
+**Session lifecycle** — on session start/switch, the extension resolves the full shell PATH through `/bin/sh` (picking up nvm/fnm/volta without depending on a user shell like nushell), probes the binary (stdio) or server health (HTTP), and notifies accordingly. The MCP connection is restarted with the new working directory.
 
 **Auto-augment toggle** — `/gitnexus off` disables the hook without affecting tools. Useful when the graph output is noisy for a particular task. Resets to enabled on session switch.
 
 **Analyze guard** — auto-augment is paused during `/gitnexus analyze` to avoid injecting stale or partially-built index results.
 
+## Settings
+
+Open `/gitnexus settings` or `/gitnexus` → Settings to configure:
+
+| Setting | Description | Default |
+|---|---|---|
+| Auto-augment | Enrich search results with graph context | on |
+| Augment timeout | Max wait time for graph augmentation (seconds) | 8 |
+| Max augments per result | Patterns to augment in parallel per search result | 3 |
+| Max secondary patterns | File-based patterns extracted from grep/bash output | 2 |
+| MCP idle timeout | Stop the MCP process after inactivity (seconds; `off` = never) | 600 |
+| GitNexus command | Shell command to invoke gitnexus (stdio mode) | `gitnexus` |
+| MCP transport | `stdio` (local CLI) or `http` (remote server) | `stdio` |
+| Server URL | MCP endpoint URL (HTTP mode) | — |
+| Auth token | Bearer token for server authentication (HTTP mode) | — |
+| Workspace directory | Path inside Docker container where repos are mounted | `/workspace` |
+
 ## License note
 
 This extension (pi-gitnexus) is MIT licensed. [GitNexus](https://github.com/abhigyanpatwari/GitNexus) itself is published under the [PolyForm Noncommercial License](https://polyformproject.org/licenses/noncommercial/1.0.0/) — commercial use requires a separate agreement with its author. Install and use gitnexus in accordance with its license terms.
 
+## CLI flags
+
+| Flag | Description |
+|---|---|
+| `--gitnexus-cmd <command>` | Override the gitnexus command (e.g. `npx gitnexus@latest`) |
+| `--gitnexus-server <url>` | Connect to a GitNexus HTTP server (e.g. `http://localhost:4747/api/mcp`). Overrides saved config. |
+
 ## Notes
 
-- Tested with gitnexus 1.4.8. Older versions may have incompatible MCP schemas.
+- Tested with gitnexus 1.4.8+. Older versions may have incompatible MCP schemas.
 - The extension never runs `gitnexus analyze` automatically — indexing is always user-initiated via `/gitnexus analyze`.
 - The index is a static snapshot. Re-run `/gitnexus analyze` after significant code changes. The agent will suggest this when the index appears stale.
 - In multi-repo GitNexus setups the extension automatically passes the current repo root path to MCP tools, but every tool also accepts an explicit `repo` override.
+- In HTTP mode, `/gitnexus analyze` triggers server-side analysis. The repo must exist inside the container's workspace directory (configured via settings), or you can pass a git URL to clone it: `/gitnexus analyze https://github.com/user/repo.git`.
 - `gitnexus_detect_changes` follows the current MCP API: use `scope` (`unstaged`, `staged`, `all`, or `compare`) and optional `base_ref` instead of pasting raw diffs.
 - Markdown files (`.md`, `.mdx`) participate in augmentation alongside code files when GitNexus has indexed them.
 - `gitnexus_rename` and `gitnexus_cypher` are exposed intentionally; use `gitnexus_rename` with `dry_run` first because it can propose multi-file edits.
+- `gitnexus_read_resource` can read any MCP resource by URI — use `gitnexus://repos` to discover available repos, or `gitnexus://repo/{name}/schema` to get the graph schema for Cypher queries.
 - The enrichment is appended to the tool result the agent receives — files on disk and raw tool outputs are never modified.

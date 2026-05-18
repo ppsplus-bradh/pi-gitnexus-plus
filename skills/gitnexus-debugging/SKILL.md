@@ -33,6 +33,8 @@ description: "Use when the user is debugging a bug, tracing an error, or asking 
 | Intermittent failure | `context` → look for external calls, async deps            |
 | Performance issue    | `context` → find symbols with many callers (hot paths)     |
 | Recent regression    | `gitnexus_detect_changes` to see what your changes affect  |
+| API shape mismatch   | `gitnexus_shape_check` → find response shape drift         |
+| Route handler bug    | `gitnexus_api_impact` → see consumers and middleware chain  |
 
 ## Checklist
 
@@ -41,6 +43,8 @@ description: "Use when the user is debugging a bug, tracing an error, or asking 
 - [ ] gitnexus_query for error text or related code
 - [ ] Identify the suspect function from returned processes
 - [ ] gitnexus_context to see callers and callees
+- [ ] gitnexus_shape_check if the bug involves API response shapes
+- [ ] gitnexus_api_impact if the bug is in a route handler
 - [ ] gitnexus_cypher for custom call chain traces if needed
 - [ ] Read source files to confirm root cause
 ```

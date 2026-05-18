@@ -6,6 +6,7 @@
 
 import spawn from 'cross-spawn';
 import { type GitNexusConfig, runGitNexusAnalyze } from '../gitnexus.js';
+import type { GitNexusServerApi } from '../server-api.js';
 import { openSettingsMenu } from './settings-menu.js';
 
 // ── Types ───────────────────────────────────────────────────────────────────
@@ -27,6 +28,9 @@ export interface MenuContext {
   binaryAvailable: boolean;
   gitnexusCmd: string[];
   spawnEnv: NodeJS.ProcessEnv;
+  transportType: 'stdio' | 'http';
+  serverApi: GitNexusServerApi | null;
+  workspaceDir: string;
   getHookFires: () => number;
   getAugmentHits: () => number;
   findGitNexusIndex: (cwd: string) => boolean;
@@ -40,8 +44,25 @@ export interface MenuContext {
 // ── Status ──────────────────────────────────────────────────────────────────
 
 async function getStatusLine(mctx: MenuContext): Promise<string> {
+  // HTTP mode: use REST API for status
+  if (mctx.transportType === 'http' && mctx.serverApi) {
+    try {
+      const [info, repos] = await Promise.all([mctx.serverApi.info(), mctx.serverApi.listRepos()]);
+      const repoSummary = repos.length > 0
+        ? repos.map(r => `  ${r.name} (${r.stats.nodes} nodes, ${r.stats.edges} edges)`).join('\n')
+        : '  (no repos indexed)';
+      const augmentLine = mctx.state.augmentEnabled
+        ? `Auto-augment: on (${mctx.getHookFires()} intercepted, ${mctx.getAugmentHits()} enriched)`
+        : 'Auto-augment: off';
+      return `Server v${info.version} (HTTP)\nRepos (${repos.length}):\n${repoSummary}\n${augmentLine}`;
+    } catch {
+      return 'Server unreachable';
+    }
+  }
+
+  // Stdio mode: existing behavior
   if (!mctx.binaryAvailable) return 'gitnexus not installed';
-  if (!mctx.findGitNexusIndex(mctx.cwd)) return 'No index — run /gitnexus analyze';
+  if (!mctx.findGitNexusIndex(mctx.cwd)) return 'No index \u2014 run /gitnexus analyze';
   const out = await new Promise<string>((resolve_) => {
     let stdout = '';
     const [bin, ...baseArgs] = mctx.gitnexusCmd;
@@ -63,13 +84,48 @@ async function getStatusLine(mctx: MenuContext): Promise<string> {
 // ── Analyze ─────────────────────────────────────────────────────────────────
 
 async function runAnalyze(mctx: MenuContext): Promise<void> {
+  // HTTP mode: use server API for analysis
+  if (mctx.transportType === 'http' && mctx.serverApi) {
+    mctx.state.augmentEnabled = false;
+    mctx.syncState();
+    const { basename } = await import('node:path');
+    const repoName = basename(mctx.cwd);
+    const target = { path: `${mctx.workspaceDir}/${repoName}` };
+    mctx.ui.notify('GitNexus: analyzing on server, this may take a while\u2026', 'info');
+    try {
+      const result = await mctx.serverApi.analyzeAndWait(target, (status) => {
+        mctx.ui.notify(
+          `GitNexus: ${status.progress.phase} \u2014 ${status.progress.percent}% ${status.progress.message}`,
+          'info',
+        );
+      });
+      mctx.clearIndexCache();
+      mctx.resetAugmentCaches();
+      if (result.status === 'complete') {
+        mctx.state.augmentEnabled = true;
+        mctx.syncState();
+        mctx.ui.notify('GitNexus: server analysis complete. Knowledge graph ready.', 'info');
+      } else {
+        mctx.state.augmentEnabled = true;
+        mctx.syncState();
+        mctx.ui.notify(`GitNexus: analysis failed \u2014 ${result.error || 'unknown error'}`, 'error');
+      }
+    } catch (err) {
+      mctx.state.augmentEnabled = true;
+      mctx.syncState();
+      mctx.ui.notify(`GitNexus: analysis failed \u2014 ${err instanceof Error ? err.message : 'unknown error'}`, 'error');
+    }
+    return;
+  }
+
+  // Stdio mode: existing behavior
   if (!mctx.binaryAvailable) {
     mctx.ui.notify('gitnexus is not installed. Install: npm i -g gitnexus', 'warning');
     return;
   }
   mctx.state.augmentEnabled = false;
   mctx.syncState();
-  mctx.ui.notify('GitNexus: analyzing codebase, this may take a while…', 'info');
+  mctx.ui.notify('GitNexus: analyzing codebase, this may take a while\u2026', 'info');
   const exitCode = await runGitNexusAnalyze(mctx.cwd);
   if (exitCode === 0) {
     mctx.clearIndexCache();

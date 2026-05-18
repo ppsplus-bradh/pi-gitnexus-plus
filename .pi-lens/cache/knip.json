@@ -1,0 +1,35 @@
+{
+  "success": true,
+  "issues": [
+    {
+      "type": "export",
+      "name": "TransportConfig",
+      "file": "src/mcp-client.ts",
+      "line": 17
+    },
+    {
+      "type": "export",
+      "name": "MenuUI",
+      "file": "src/ui/main-menu.ts",
+      "line": 14
+    }
+  ],
+  "unusedExports": [
+    {
+      "type": "export",
+      "name": "TransportConfig",
+      "file": "src/mcp-client.ts",
+      "line": 17
+    },
+    {
+      "type": "export",
+      "name": "MenuUI",
+      "file": "src/ui/main-menu.ts",
+      "line": 14
+    }
+  ],
+  "unusedFiles": [],
+  "unusedDeps": [],
+  "unlistedDeps": [],
+  "summary": "Found 2 issues"
+}

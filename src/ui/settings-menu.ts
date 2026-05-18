@@ -88,12 +88,92 @@ export async function openSettingsMenu(
         submenu: (currentValue, finish) => {
           const input = new Input();
           input.setValue(currentValue);
-          input.focused = true; // SettingsList delegates input directly; bypass TUI focus mgmt
+          input.focused = true;
           input.onSubmit = (value) => finish(value.trim() || undefined);
           input.onEscape = () => finish(undefined);
           return {
             render: (w) => [
               theme.fg("dim", "Edit gitnexus command (Enter=save, Esc=cancel):"),
+              ...input.render(w),
+            ],
+            handleInput: (data) => input.handleInput(data),
+            invalidate: () => input.invalidate(),
+          };
+        },
+      },
+      {
+        id: "mcpTransport",
+        label: "MCP transport",
+        description:
+          "'stdio' spawns a local gitnexus process. 'http' connects to a " +
+          "remote GitNexus server via Streamable HTTP. Change takes effect " +
+          "on next session.",
+        currentValue: cfg.mcpTransport ?? "stdio",
+        values: ["stdio", "http"],
+      },
+      {
+        id: "mcpServerUrl",
+        label: "Server URL",
+        description:
+          "The MCP endpoint URL for HTTP transport, e.g. " +
+          "'http://localhost:4747/api/mcp'. Only used when transport is 'http'.",
+        currentValue: cfg.mcpServerUrl ?? "(none)",
+        submenu: (currentValue, finish) => {
+          const input = new Input();
+          input.setValue(currentValue === "(none)" ? "" : currentValue);
+          input.focused = true;
+          input.onSubmit = (value) => finish(value.trim() || undefined);
+          input.onEscape = () => finish(undefined);
+          return {
+            render: (w) => [
+              theme.fg("dim", "Enter server MCP URL (Enter=save, Esc=cancel):"),
+              ...input.render(w),
+            ],
+            handleInput: (data) => input.handleInput(data),
+            invalidate: () => input.invalidate(),
+          };
+        },
+      },
+      {
+        id: "mcpAuthToken",
+        label: "Auth token",
+        description:
+          "Bearer token for authenticating with the GitNexus HTTP server. " +
+          "Leave empty for no authentication.",
+        currentValue: cfg.mcpAuthToken ? "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" : "(none)",
+        submenu: (currentValue, finish) => {
+          const input = new Input();
+          input.setValue(currentValue === "(none)" || currentValue === "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" ? "" : currentValue);
+          input.focused = true;
+          input.onSubmit = (value) => finish(value.trim() || undefined);
+          input.onEscape = () => finish(undefined);
+          return {
+            render: (w) => [
+              theme.fg("dim", "Enter auth token (Enter=save, Esc=cancel):"),
+              ...input.render(w),
+            ],
+            handleInput: (data) => input.handleInput(data),
+            invalidate: () => input.invalidate(),
+          };
+        },
+      },
+      {
+        id: "workspaceDir",
+        label: "Workspace directory",
+        description:
+          "The server-side directory where repos are mounted or cloned. " +
+          "Used to map local cwd to a container path in HTTP mode. " +
+          "Default: '/workspace'.",
+        currentValue: cfg.workspaceDir ?? "/workspace",
+        submenu: (currentValue, finish) => {
+          const input = new Input();
+          input.setValue(currentValue);
+          input.focused = true;
+          input.onSubmit = (value) => finish(value.trim() || undefined);
+          input.onEscape = () => finish(undefined);
+          return {
+            render: (w) => [
+              theme.fg("dim", "Enter workspace directory (Enter=save, Esc=cancel):"),
               ...input.render(w),
             ],
             handleInput: (data) => input.handleInput(data),
@@ -126,6 +206,18 @@ export async function openSettingsMenu(
         }
         if (id === "cmd") {
           cfg.cmd = newValue;
+        }
+        if (id === "mcpTransport") {
+          cfg.mcpTransport = newValue as 'stdio' | 'http';
+        }
+        if (id === "mcpServerUrl") {
+          cfg.mcpServerUrl = newValue;
+        }
+        if (id === "mcpAuthToken") {
+          cfg.mcpAuthToken = newValue;
+        }
+        if (id === "workspaceDir") {
+          cfg.workspaceDir = newValue;
         }
         saveConfig(cfg);
         applyChanges();

@@ -2,7 +2,6 @@ import spawn from 'cross-spawn';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { homedir } from 'os';
 import { basename, extname, join, posix, relative, resolve, sep } from 'path';
-import { mcpClient } from './mcp-client';
 
 /** Max output chars returned to the LLM. Prevents context flooding. JS strings are UTF-16 chars, not bytes. */
 export const MAX_OUTPUT_CHARS = 8 * 1024;
@@ -32,6 +31,10 @@ export interface GitNexusConfig {
   maxAugmentsPerResult?: number;
   maxSecondaryPatterns?: number;
   mcpIdleTimeout?: number;
+  mcpTransport?: 'stdio' | 'http';
+  mcpServerUrl?: string;
+  mcpAuthToken?: string;
+  workspaceDir?: string;
 }
 
 export function loadSavedConfig(): GitNexusConfig {
@@ -351,13 +354,48 @@ export function validateRepoRelativePath(file: string): string | null {
   return normalized;
 }
 
+// ── HTTP-mode dependency injection ──────────────────────────────
+// These module-level function slots let index.ts inject HTTP-mode
+// implementations without gitnexus.ts importing mcp-client (which
+// would create a circular dependency).
+
+let httpModeCallTool: ((name: string, args: Record<string, unknown>, cwd: string) => Promise<string>) | null = null;
+
+/** Inject the HTTP-mode callTool function. Called by index.ts during session setup. */
+export function setHttpModeCallTool(fn: ((name: string, args: Record<string, unknown>, cwd: string) => Promise<string>) | null): void {
+  httpModeCallTool = fn;
+}
+
+let httpAnalyze: ((cwd: string) => Promise<number | null>) | null = null;
+
+/** Inject the HTTP-mode analyze function. Called by index.ts during session setup. */
+export function setHttpAnalyze(fn: ((cwd: string) => Promise<number | null>) | null): void {
+  httpAnalyze = fn;
+}
+
 /**
  * Spawn `gitnexus augment <pattern>` and return its output.
  * gitnexus augment writes results to stderr (not stdout).
  * Used by the tool_result hook — not by registered tools (those use mcp-client).
  * Returns output trimmed and truncated to MAX_OUTPUT_CHARS, or "" on any error.
+ *
+ * In HTTP mode (when httpModeCallTool is set), calls the MCP `query` tool
+ * instead of spawning a subprocess.
  */
 export async function runAugment(pattern: string, cwd: string): Promise<string> {
+  // HTTP mode: use injected callTool to invoke the query tool via MCP
+  if (httpModeCallTool) {
+    try {
+      const result = await httpModeCallTool('query', { query: pattern, limit: 3, max_symbols: 5 }, cwd);
+      // Strip the '[GitNexus]\n' prefix that callTool prepends
+      const stripped = result.startsWith('[GitNexus]\n') ? result.slice('[GitNexus]\n'.length) : result;
+      return stripped.trim().slice(0, MAX_OUTPUT_CHARS);
+    } catch {
+      return '';
+    }
+  }
+
+  // Stdio mode: existing subprocess spawn logic
   return new Promise((resolve_) => {
     // gitnexus augment writes results to stderr (not stdout)
     let output = '';
@@ -396,14 +434,21 @@ export async function runAugment(pattern: string, cwd: string): Promise<string> 
 /**
  * Run `gitnexus analyze` and return the exit code (null on spawn error).
  *
- * Stops the MCP process before reindexing so it does not query a half-rebuilt
- * graph, and again after completion so the next tool call respawns against the
- * fresh index. If the first run fails because the directory is not a git
- * repository, retries once with `--skip-git`.
+ * In HTTP mode (when httpAnalyze is set), delegates to the injected function
+ * which uses the GitNexusServerApi to analyze on the remote server.
+ *
+ * In stdio mode, stops the MCP process before reindexing so it does not query
+ * a half-rebuilt graph, and again after completion so the next tool call
+ * respawns against the fresh index. If the first run fails because the
+ * directory is not a git repository, retries once with `--skip-git`.
  */
 export async function runGitNexusAnalyze(cwd: string): Promise<number | null> {
-  mcpClient.stop();
+  // HTTP mode: use injected analyze function
+  if (httpAnalyze) {
+    return httpAnalyze(cwd);
+  }
 
+  // Stdio mode: existing subprocess spawn logic
   const runOnce = (extraArgs: string[]) => new Promise<{ code: number | null; stderr: string }>((resolve_) => {
     const [bin, ...baseArgs] = gitnexusCmd;
     const proc = spawn(bin, [...baseArgs, 'analyze', ...extraArgs], {
@@ -422,6 +467,5 @@ export async function runGitNexusAnalyze(cwd: string): Promise<number | null> {
     result = await runOnce(['--skip-git']);
   }
 
-  mcpClient.stop();
   return result.code;
 }
