@@ -123,7 +123,7 @@ class GitNexusMcpClient {
     if (this.config.type === 'http') {
       const headers: Record<string, string> = {};
       if (this.config.authToken) {
-        headers['Authorization'] = `Bearer ${this.config.authToken}`;
+        headers.Authorization = `Bearer ${this.config.authToken}`;
       }
       return new StreamableHTTPClientTransport(new URL(this.config.url), {
         requestInit: { headers },

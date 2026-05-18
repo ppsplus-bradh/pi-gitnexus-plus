@@ -80,7 +80,7 @@ export class GitNexusServerApi {
       'Content-Type': 'application/json',
     };
     if (this.authToken) {
-      h['Authorization'] = `Bearer ${this.authToken}`;
+      h.Authorization = `Bearer ${this.authToken}`;
     }
     return h;
   }

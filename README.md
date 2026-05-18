@@ -12,16 +12,16 @@ https://github.com/user-attachments/assets/49e61667-f508-4d22-abad-05241e414664
 
 ## What's different from pi-gitnexus
 
-| | [pi-gitnexus](https://github.com/tintinweb/pi-gitnexus) | **pi-gitnexus-plus** |
-|---|---|---|
-| **Transport** | Stdio only (local `gitnexus mcp` process) | Stdio + [Streamable HTTP](https://modelcontextprotocol.io/specification/2025-03-26/basic/transports) |
-| **MCP client** | Handrolled JSON-RPC 2.0 | Official [`@modelcontextprotocol/sdk`](https://github.com/modelcontextprotocol/typescript-sdk) |
-| **Agent tools** | 7 | 14 |
-| **MCP resources** | Not supported | All 10 resource types via `gitnexus_read_resource` |
-| **Docker/remote** | Not supported | Full support — health checks, server-side analyze, job polling |
-| **API analysis** | — | Route maps, shape checks, API impact reports |
-| **Multi-repo** | — | Group management and contract registry sync |
-| **Server management** | — | REST client for `/api/analyze`, `/api/repos`, `/api/health`, `/api/info` |
+|                       | [pi-gitnexus](https://github.com/tintinweb/pi-gitnexus) | **pi-gitnexus-plus**                                                                                 |
+| --------------------- | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| **Transport**         | Stdio only (local `gitnexus mcp` process)               | Stdio + [Streamable HTTP](https://modelcontextprotocol.io/specification/2025-03-26/basic/transports) |
+| **MCP client**        | Handrolled JSON-RPC 2.0                                 | Official [`@modelcontextprotocol/sdk`](https://github.com/modelcontextprotocol/typescript-sdk)       |
+| **Agent tools**       | 7                                                       | 14                                                                                                   |
+| **MCP resources**     | Not supported                                           | All 10 resource types via `gitnexus_read_resource`                                                   |
+| **Docker/remote**     | Not supported                                           | Full support — health checks, server-side analyze, job polling                                       |
+| **API analysis**      | —                                                       | Route maps, shape checks, API impact reports                                                         |
+| **Multi-repo**        | —                                                       | Group management and contract registry sync                                                          |
+| **Server management** | —                                                       | REST client for `/api/analyze`, `/api/repos`, `/api/health`, `/api/info`                             |
 
 Everything from the original is preserved — auto-augment, session caching, skills, settings, all 7 original tools with identical names and schemas.
 
@@ -83,67 +83,67 @@ Or configure permanently via `/gitnexus settings` → MCP transport → `http`, 
 
 ### Core tools
 
-| Tool | Description |
-|---|---|
-| `gitnexus_list_repos` | List all indexed repositories |
-| `gitnexus_query` | Search the knowledge graph for execution flows |
-| `gitnexus_context` | 360° view of a symbol: callers, callees, processes |
-| `gitnexus_impact` | Blast radius analysis for a symbol |
+| Tool                      | Description                                                                  |
+| ------------------------- | ---------------------------------------------------------------------------- |
+| `gitnexus_list_repos`     | List all indexed repositories                                                |
+| `gitnexus_query`          | Search the knowledge graph for execution flows                               |
+| `gitnexus_context`        | 360° view of a symbol: callers, callees, processes                           |
+| `gitnexus_impact`         | Blast radius analysis for a symbol                                           |
 | `gitnexus_detect_changes` | Analyze staged/unstaged/all/compare git changes and affected execution flows |
-| `gitnexus_rename` | Coordinated multi-file rename preview/apply through the knowledge graph |
-| `gitnexus_cypher` | Execute raw Cypher queries against the graph |
+| `gitnexus_rename`         | Coordinated multi-file rename preview/apply through the knowledge graph      |
+| `gitnexus_cypher`         | Execute raw Cypher queries against the graph                                 |
 
 ### API & route analysis
 
-| Tool | Description |
-|---|---|
-| `gitnexus_route_map` | Show API route mappings: consumers, handlers, middleware |
-| `gitnexus_tool_map` | Show MCP/RPC tool definitions and handler locations |
+| Tool                   | Description                                                  |
+| ---------------------- | ------------------------------------------------------------ |
+| `gitnexus_route_map`   | Show API route mappings: consumers, handlers, middleware     |
+| `gitnexus_tool_map`    | Show MCP/RPC tool definitions and handler locations          |
 | `gitnexus_shape_check` | Check API response shapes against consumer property accesses |
-| `gitnexus_api_impact` | Pre-change impact report for an API route handler |
+| `gitnexus_api_impact`  | Pre-change impact report for an API route handler            |
 
 ### Multi-repo & resources
 
-| Tool | Description |
-|---|---|
-| `gitnexus_group_list` | List configured repository groups |
-| `gitnexus_group_sync` | Rebuild the contract registry for a repository group |
+| Tool                     | Description                                                                           |
+| ------------------------ | ------------------------------------------------------------------------------------- |
+| `gitnexus_group_list`    | List configured repository groups                                                     |
+| `gitnexus_group_sync`    | Rebuild the contract registry for a repository group                                  |
 | `gitnexus_read_resource` | Read a GitNexus MCP resource by URI (repo context, clusters, processes, schema, etc.) |
 
 ## Commands
 
-| Command | Description |
-|---|---|
-| `/gitnexus` | Open the main menu (status, Analyze, Settings, Help) |
-| `/gitnexus status` | Show index status and session enrichment count |
-| `/gitnexus analyze` | Build or rebuild the knowledge graph (local CLI or server-side) |
-| `/gitnexus analyze <url>` | Clone and index a git repo by URL (HTTP mode only) |
-| `/gitnexus on` / `/gitnexus off` | Enable/disable auto-augment (tools unaffected) |
-| `/gitnexus settings` | Open the settings panel |
-| `/gitnexus <pattern>` | Manual graph lookup for a symbol or pattern |
-| `/gitnexus query <text>` | Search execution flows |
-| `/gitnexus context <name>` | 360° view of a symbol: callers, callees, processes |
-| `/gitnexus impact <name>` | Upstream blast radius of a change |
-| `/gitnexus help` | Show command reference |
+| Command                          | Description                                                     |
+| -------------------------------- | --------------------------------------------------------------- |
+| `/gitnexus`                      | Open the main menu (status, Analyze, Settings, Help)            |
+| `/gitnexus status`               | Show index status and session enrichment count                  |
+| `/gitnexus analyze`              | Build or rebuild the knowledge graph (local CLI or server-side) |
+| `/gitnexus analyze <url>`        | Clone and index a git repo by URL (HTTP mode only)              |
+| `/gitnexus on` / `/gitnexus off` | Enable/disable auto-augment (tools unaffected)                  |
+| `/gitnexus settings`             | Open the settings panel                                         |
+| `/gitnexus <pattern>`            | Manual graph lookup for a symbol or pattern                     |
+| `/gitnexus query <text>`         | Search execution flows                                          |
+| `/gitnexus context <name>`       | 360° view of a symbol: callers, callees, processes              |
+| `/gitnexus impact <name>`        | Upstream blast radius of a change                               |
+| `/gitnexus help`                 | Show command reference                                          |
 
 ## CLI flags
 
-| Flag | Description |
-|---|---|
-| `--gitnexus-cmd <command>` | Override the gitnexus command (e.g. `npx gitnexus@latest`) |
-| `--gitnexus-server <url>` | Connect to a GitNexus HTTP server (e.g. `http://localhost:4747/api/mcp`). Overrides saved config. |
+| Flag                       | Description                                                                                       |
+| -------------------------- | ------------------------------------------------------------------------------------------------- |
+| `--gitnexus-cmd <command>` | Override the gitnexus command (e.g. `npx gitnexus@latest`)                                        |
+| `--gitnexus-server <url>`  | Connect to a GitNexus HTTP server (e.g. `http://localhost:4747/api/mcp`). Overrides saved config. |
 
 ## Skills
 
 The extension bundles 5 workflow skills that guide the agent through common tasks:
 
-| Skill | When to use |
-|---|---|
-| `/skill:gitnexus-exploring` | Understand architecture, trace execution flows, explore unfamiliar code |
-| `/skill:gitnexus-debugging` | Debug a bug, trace an error, find why something fails |
-| `/skill:gitnexus-pr-review` | Review a PR, assess merge risk, check blast radius |
-| `/skill:gitnexus-refactoring` | Rename, extract, split, or restructure code safely |
-| `/skill:gitnexus-impact-analysis` | Know what breaks before changing something |
+| Skill                             | When to use                                                             |
+| --------------------------------- | ----------------------------------------------------------------------- |
+| `/skill:gitnexus-exploring`       | Understand architecture, trace execution flows, explore unfamiliar code |
+| `/skill:gitnexus-debugging`       | Debug a bug, trace an error, find why something fails                   |
+| `/skill:gitnexus-pr-review`       | Review a PR, assess merge risk, check blast radius                      |
+| `/skill:gitnexus-refactoring`     | Rename, extract, split, or restructure code safely                      |
+| `/skill:gitnexus-impact-analysis` | Know what breaks before changing something                              |
 
 Skills are loaded on-demand — only the description is in context until the agent or user invokes one.
 
@@ -151,18 +151,18 @@ Skills are loaded on-demand — only the description is in context until the age
 
 Open `/gitnexus settings` or `/gitnexus` → Settings to configure:
 
-| Setting | Description | Default |
-|---|---|---|
-| Auto-augment | Enrich search results with graph context | on |
-| Augment timeout | Max wait time for graph augmentation (seconds) | 8 |
-| Max augments per result | Patterns to augment in parallel per search result | 3 |
-| Max secondary patterns | File-based patterns extracted from grep/bash output | 2 |
-| MCP idle timeout | Stop the MCP process after inactivity (seconds; `off` = never) | 600 |
-| GitNexus command | Shell command to invoke gitnexus (stdio mode) | `gitnexus` |
-| MCP transport | `stdio` (local CLI) or `http` (remote server) | `stdio` |
-| Server URL | MCP endpoint URL (HTTP mode) | — |
-| Auth token | Bearer token for server authentication (HTTP mode) | — |
-| Workspace directory | Path inside Docker container where repos are mounted | `/workspace` |
+| Setting                 | Description                                                    | Default      |
+| ----------------------- | -------------------------------------------------------------- | ------------ |
+| Auto-augment            | Enrich search results with graph context                       | on           |
+| Augment timeout         | Max wait time for graph augmentation (seconds)                 | 8            |
+| Max augments per result | Patterns to augment in parallel per search result              | 3            |
+| Max secondary patterns  | File-based patterns extracted from grep/bash output            | 2            |
+| MCP idle timeout        | Stop the MCP process after inactivity (seconds; `off` = never) | 600          |
+| GitNexus command        | Shell command to invoke gitnexus (stdio mode)                  | `gitnexus`   |
+| MCP transport           | `stdio` (local CLI) or `http` (remote server)                  | `stdio`      |
+| Server URL              | MCP endpoint URL (HTTP mode)                                   | —            |
+| Auth token              | Bearer token for server authentication (HTTP mode)             | —            |
+| Workspace directory     | Path inside Docker container where repos are mounted           | `/workspace` |
 
 ## How it works
 
@@ -172,16 +172,16 @@ Fires after every grep/find/bash/read/read_many tool result. Extracts up to 3 pa
 
 ### What triggers augmentation
 
-| Tool | Pattern used |
-|---|---|
-| `grep` | Longest identifier literal extracted from the search pattern |
-| `bash` with grep/rg | First non-flag argument after `grep`/`rg` (quote-aware, pipe-safe) |
-| `bash` with cat/head/tail | Filename of the target file (quote-aware) |
-| `bash` with find | Value of `-name`/`-iname` |
-| `find` | Glob pattern basename |
-| `read` | Filename of the file being read (indexed code/docs files only) |
-| `read_many` | Each indexed code/docs file in the batch (up to 5), labeled per-file in output |
-| Any grep/bash result | Filenames extracted from result lines (`path/file.ts:line:`) |
+| Tool                      | Pattern used                                                                   |
+| ------------------------- | ------------------------------------------------------------------------------ |
+| `grep`                    | Longest identifier literal extracted from the search pattern                   |
+| `bash` with grep/rg       | First non-flag argument after `grep`/`rg` (quote-aware, pipe-safe)             |
+| `bash` with cat/head/tail | Filename of the target file (quote-aware)                                      |
+| `bash` with find          | Value of `-name`/`-iname`                                                      |
+| `find`                    | Glob pattern basename                                                          |
+| `read`                    | Filename of the file being read (indexed code/docs files only)                 |
+| `read_many`               | Each indexed code/docs file in the batch (up to 5), labeled per-file in output |
+| Any grep/bash result      | Filenames extracted from result lines (`path/file.ts:line:`)                   |
 
 Each tool result augments up to 3 patterns in parallel (up to 5 for `read_many`). Patterns already augmented this session are skipped.
 
@@ -202,13 +202,13 @@ On session start/switch, the extension resolves the full shell PATH through `$SH
 
 In HTTP mode, the extension communicates with the GitNexus server's REST API for operations that don't fit the MCP tool/resource model:
 
-| Endpoint | Purpose |
-|---|---|
-| `GET /api/health` | Server health check (used during session start) |
-| `GET /api/info` | Server version and context (shown by `/gitnexus status`) |
-| `GET /api/repos` | List indexed repositories |
-| `POST /api/analyze` | Trigger server-side analysis (accepts `path`, `url`, or `name`) |
-| `GET /api/analyze/:jobId` | Poll analysis job progress |
+| Endpoint                  | Purpose                                                         |
+| ------------------------- | --------------------------------------------------------------- |
+| `GET /api/health`         | Server health check (used during session start)                 |
+| `GET /api/info`           | Server version and context (shown by `/gitnexus status`)        |
+| `GET /api/repos`          | List indexed repositories                                       |
+| `POST /api/analyze`       | Trigger server-side analysis (accepts `path`, `url`, or `name`) |
+| `GET /api/analyze/:jobId` | Poll analysis job progress                                      |
 
 `/gitnexus analyze` in HTTP mode constructs the container path from your workspace directory setting and the current directory name, or you can pass a git URL directly: `/gitnexus analyze https://github.com/user/repo.git`.
 

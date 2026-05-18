@@ -283,8 +283,8 @@
     },
     "src/server-api.ts": {
       "latest": {
-        "commit": "cd61401",
-        "timestamp": "2026-05-17T23:00:27.359Z",
+        "commit": "a5f6a36",
+        "timestamp": "2026-05-18T01:07:56.422Z",
         "mi": 40,
         "cognitive": 29,
         "nesting": 4,
@@ -306,6 +306,16 @@
         {
           "commit": "cd61401",
           "timestamp": "2026-05-17T23:00:27.359Z",
+          "mi": 40,
+          "cognitive": 29,
+          "nesting": 4,
+          "lines": 147,
+          "maxCyclomatic": 7,
+          "entropy": 5.98
+        },
+        {
+          "commit": "a5f6a36",
+          "timestamp": "2026-05-18T01:07:56.422Z",
           "mi": 40,
           "cognitive": 29,
           "nesting": 4,
@@ -597,5 +607,5 @@
       "trend": "stable"
     }
   },
-  "capturedAt": "2026-05-17T23:00:38.567Z"
+  "capturedAt": "2026-05-18T01:08:01.423Z"
 }
