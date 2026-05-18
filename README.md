@@ -1,8 +1,10 @@
-# pi-gitnexus
+# pi-gitnexus-plus
 
-[GitNexus](https://github.com/abhigyanpatwari/GitNexus) knowledge graph integration for [pi](https://github.com/mariozechner/pi). Enriches every search, file read, and symbol lookup with call chains, callers/callees, and execution flows — automatically.
+[GitNexus](https://github.com/abhigyanpatwari/GitNexus) knowledge graph integration for [pi](https://github.com/mariozechner/pi). Enriches every search, file read, and symbol lookup with call chains, callers/callees, and execution flows — automatically. Supports both local CLI (stdio) and HTTP server (Docker) transports.
 
-<img height="298" alt="pi-gitnexus screenshot" src="https://github.com/tintinweb/pi-gitnexus/raw/master/media/screenshot.png" />
+> Forked from [tintinweb/pi-gitnexus](https://github.com/tintinweb/pi-gitnexus) with expanded tool coverage, MCP SDK integration, HTTP transport, and Docker server management.
+
+<img height="298" alt="pi-gitnexus-plus screenshot" src="https://github.com/ppsplus-bradh/pi-gitnexus-plus/raw/master/media/screenshot.png" />
 
 
 https://github.com/user-attachments/assets/49e61667-f508-4d22-abad-05241e414664
@@ -47,7 +49,7 @@ The extension never installs anything automatically. If your local CLI setup dif
 
 ### Option A: Local CLI (stdio transport)
 
-1. Install the extension: `pi install npm:pi-gitnexus`
+1. Install the extension: `pi install npm:pi-gitnexus-plus`
 2. Install gitnexus: `npm i -g gitnexus`
 3. Open your project in pi
 4. Run `/gitnexus analyze` to build the knowledge graph
@@ -55,7 +57,7 @@ The extension never installs anything automatically. If your local CLI setup dif
 
 ### Option B: HTTP server (e.g. Docker)
 
-1. Install the extension: `pi install npm:pi-gitnexus`
+1. Install the extension: `pi install npm:pi-gitnexus-plus`
 2. Start the GitNexus server (e.g. `docker run -p 4747:4747 -v /path/to/repos:/workspace gitnexus/server`)
 3. Start pi with the server flag: `pi --gitnexus-server http://localhost:4747/api/mcp`
 4. Run `/gitnexus analyze` to trigger server-side indexing
@@ -167,7 +169,7 @@ Open `/gitnexus settings` or `/gitnexus` → Settings to configure:
 
 ## License note
 
-This extension (pi-gitnexus) is MIT licensed. [GitNexus](https://github.com/abhigyanpatwari/GitNexus) itself is published under the [PolyForm Noncommercial License](https://polyformproject.org/licenses/noncommercial/1.0.0/) — commercial use requires a separate agreement with its author. Install and use gitnexus in accordance with its license terms.
+This extension (pi-gitnexus-plus) is MIT licensed. Originally forked from [tintinweb/pi-gitnexus](https://github.com/tintinweb/pi-gitnexus). [GitNexus](https://github.com/abhigyanpatwari/GitNexus) itself is published under the [PolyForm Noncommercial License](https://polyformproject.org/licenses/noncommercial/1.0.0/) — commercial use requires a separate agreement with its author. Install and use gitnexus in accordance with its license terms.
 
 ## CLI flags
 

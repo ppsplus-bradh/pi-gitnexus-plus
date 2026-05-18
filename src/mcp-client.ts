@@ -4,7 +4,7 @@ import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/
 import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 import { MAX_OUTPUT_CHARS } from './gitnexus';
 
-const CLIENT_INFO = { name: 'pi-gitnexus', version: '0.6.3' };
+const CLIENT_INFO = { name: 'pi-gitnexus-plus', version: '0.7.0' };
 
 /** Idle timeout in ms. 0 = disabled (kept alive for the session). Set via setMcpIdleTimeout(). */
 let idleTimeoutMs = 600_000;

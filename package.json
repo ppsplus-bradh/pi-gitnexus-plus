@@ -1,16 +1,16 @@
 {
-  "name": "pi-gitnexus",
-  "version": "0.6.3",
-  "description": "GitNexus knowledge graph integration for pi — enriches searches with call chains, execution flows, and blast radius",
-  "author": "tintinweb",
+  "name": "pi-gitnexus-plus",
+  "version": "0.7.0",
+  "description": "GitNexus knowledge graph integration for pi — enriches searches with call chains, execution flows, and blast radius. Supports stdio and HTTP transports.",
+  "author": "Brad Huffman",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/tintinweb/pi-gitnexus.git"
+    "url": "https://github.com/ppsplus-bradh/pi-gitnexus-plus.git"
   },
-  "homepage": "https://github.com/tintinweb/pi-gitnexus#readme",
+  "homepage": "https://github.com/ppsplus-bradh/pi-gitnexus-plus#readme",
   "bugs": {
-    "url": "https://github.com/tintinweb/pi-gitnexus/issues"
+    "url": "https://github.com/ppsplus-bradh/pi-gitnexus-plus/issues"
   },
   "keywords": [
     "pi-package",
@@ -56,6 +56,6 @@
     "skills": [
       "./skills"
     ],
-    "image": "https://github.com/tintinweb/pi-gitnexus/raw/master/media/screenshot.png"
+    "image": "https://github.com/ppsplus-bradh/pi-gitnexus-plus/raw/master/media/screenshot.png"
   }
 }
