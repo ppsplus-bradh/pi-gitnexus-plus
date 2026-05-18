@@ -22,7 +22,10 @@ tests/
 *.spec.ts
 
 .pi
+.pi-lens
 .claude
 .vscode
 .gitnexus
 .github
+thoughts/
+media/
